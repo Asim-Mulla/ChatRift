@@ -1,0 +1,151 @@
+import mongoose from "mongoose";
+import User from "../models/userModel.js";
+import Message from "../models/messageModel.js";
+
+export const getUsersForDm = async (req, res) => {
+  try {
+    const { userId } = req;
+
+    const users = await User.find({ _id: { $ne: userId } });
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+export const getDMContacts = async (req, res) => {
+  try {
+    let { userId } = req;
+
+    userId = new mongoose.Types.ObjectId(userId);
+
+    const contacts = await Message.aggregate([
+      {
+        $match: {
+          $or: [{ sender: userId }, { receiver: userId }],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: {
+            $cond: {
+              if: { $eq: ["$sender", userId] },
+              then: "$receiver",
+              else: "$sender",
+            },
+          },
+          lastMessageTime: { $first: "$createdAt" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "contactInfo",
+        },
+      },
+      {
+        $unwind: "$contactInfo",
+      },
+      {
+        $project: {
+          _id: 1,
+          lastMessageTime: 1,
+          email: "$contactInfo.email",
+          firstName: "$contactInfo.firstName",
+          lastName: "$contactInfo.lastName",
+          image: "$contactInfo.image",
+          color: "$contactInfo.color",
+        },
+      },
+      {
+        $sort: { lastMessageTime: -1 },
+      },
+    ]);
+
+    return res.status(200).json({ contacts });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+export const getUsersForGroup = async (req, res) => {
+  try {
+    const users = await User.find(
+      { _id: { $ne: req.userId } },
+      "email firstName lastName _id"
+    );
+
+    const contacts = users.map((user) => ({
+      label: user.firstName ? `${user.firstName} ${user.lastName}` : user.email,
+      value: user._id,
+    }));
+
+    return res.status(200).json({ contacts });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+export const removeNotification = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { notifier } = req.body;
+
+    if (!notifier) {
+      return res.status(400).send("Notifier id not found!");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found!");
+    }
+
+    const notification = user.notifications.find((n) => n.user === notifier);
+
+    if (!notification) {
+      return res.status(404).send("Notification not found!");
+    }
+
+    notification.count = 0;
+
+    const savedUser = await user.save();
+
+    res.status(200).json({ success: true, notifications: user.notifications });
+  } catch (error) {
+    console.error("Error removing notification:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getUserInfo = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).send("User id not found!");
+    }
+
+    const user = await User.findById(
+      userId,
+      "_id email firstName lastName color profileSetup image"
+    );
+
+    if (!user) {
+      return res.status(400).send("User not found!");
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal server error");
+  }
+};
