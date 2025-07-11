@@ -51,8 +51,6 @@ const MessageContainer = () => {
     fileName: "",
   });
 
-  // console.log(selectedChatMessages);
-
   const fetctMessages = async () => {
     try {
       const res = await getMessages(selectedChatData._id);

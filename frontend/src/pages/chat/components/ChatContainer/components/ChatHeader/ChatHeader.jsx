@@ -68,7 +68,7 @@ const ChatHeader = () => {
       return;
     }
 
-    socket.on("otherPersonTypingInDM", (typingData) => {
+    socket.on("isTypingInDM", (typingData) => {
       if (typingData.isTyping && typingData.from === selectedChatData._id) {
         setIsTyping(true);
       } else {
@@ -76,7 +76,7 @@ const ChatHeader = () => {
       }
     });
 
-    socket.on("personTypingInGroup", (typingData) => {
+    socket.on("isTypingInGroup", (typingData) => {
       if (
         selectedChatType === "Group" &&
         selectedChatData._id === typingData.in._id

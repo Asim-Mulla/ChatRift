@@ -6,6 +6,7 @@ import { cloudinary } from "../config/cloud.js";
 import validator from "validator";
 
 const maxAge = 24 * 60 * 60 * 1000;
+const isProduction = process.env.NODE_ENV === "production";
 
 const createToken = (email, userId) => {
   const secret = process.env.JWT_SECRET;
@@ -36,13 +37,41 @@ export const signup = async (req, res) => {
 
     const user = await User.create({ email, password: hashedPassword });
 
+    // Notifying on telegram
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    const sendTelegramNotification = async () => {
+      const message = `! New user signed up !
+    User email :- ${user.email},
+    `;
+
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
+        message
+      )}`;
+
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        if (result.ok) {
+          // console.log("Notification sent successfully!");
+        } else {
+          console.error("Failed to send notification:", result);
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    };
+
+    sendTelegramNotification();
+
     res
       .status(201)
       .cookie("token", createToken(email, user._id), {
         maxAge: maxAge,
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
       })
       .json({
         user: {
@@ -77,13 +106,42 @@ export const login = async (req, res) => {
       return res.status(400).send("Incorrect email or password!");
     }
 
+    // Notifying on telegram
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    const sendTelegramNotification = async () => {
+      const message = `! New user logged in !
+    ${user.firstName ? `${user.firstName} ${user.lastName}` : ""}
+    User email :- ${user.email},
+    `;
+
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
+        message
+      )}`;
+
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        if (result.ok) {
+          // console.log("Notification sent successfully!");
+        } else {
+          console.error("Failed to send notification:", result);
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    };
+
+    sendTelegramNotification();
+
     res
       .status(200)
       .cookie("token", createToken(email, user._id), {
         maxAge: maxAge,
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
       })
       .json({
         user: {
@@ -234,8 +292,8 @@ export const logout = async (req, res) => {
       .status(200)
       .clearCookie("token", {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
       })
       .send("Logout Successful");
   } catch (error) {

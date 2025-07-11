@@ -48,7 +48,6 @@ const ContactList = ({
 
     if (contact?.messages?.length && notifications) {
       try {
-        console.log("removing by click");
         await removeNotification(contact._id);
       } catch (error) {
         console.log(error);

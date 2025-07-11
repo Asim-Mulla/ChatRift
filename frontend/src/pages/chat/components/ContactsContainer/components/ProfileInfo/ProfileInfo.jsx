@@ -15,7 +15,6 @@ const ProfileInfo = () => {
   const handleLogout = async () => {
     try {
       const res = await logout();
-      console.log(res);
       if (res.status === 200) {
         navigate("/auth");
         setUserInfo(null);

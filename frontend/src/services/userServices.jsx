@@ -25,6 +25,7 @@ export const removeNotification = (notifier) => {
   );
 };
 
+// User info for DM from group
 export const getUserInfo = (userId) => {
   return api.get(`/api/user/get-user-info/${userId}`, {
     withCredentials: true,

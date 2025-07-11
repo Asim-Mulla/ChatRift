@@ -23,10 +23,7 @@ const setupSocket = (server) => {
 
   // Typing indicator for DM
   const sendIsTypingForDM = (typingData) => {
-    io.to(userSocketMap[typingData.to]).emit(
-      "otherPersonTypingInDM",
-      typingData
-    );
+    io.to(userSocketMap[typingData.to]).emit("isTypingInDM", typingData);
   };
 
   // Typing indicator for GM
@@ -40,7 +37,7 @@ const setupSocket = (server) => {
         if (member._id.toString() !== typer.id) {
           const memberSocketId = userSocketMap[member._id.toString()];
           if (memberSocketId) {
-            io.to(memberSocketId).emit("personTypingInGroup", {
+            io.to(memberSocketId).emit("isTypingInGroup", {
               typer,
               typing: typingData.isTyping,
               in: group,
@@ -53,7 +50,7 @@ const setupSocket = (server) => {
     if (typingData.from.id !== group?.admin) {
       const adminSocketId = userSocketMap[group.admin.toString()];
       if (adminSocketId) {
-        io.to(adminSocketId).emit("personTypingInGroup", {
+        io.to(adminSocketId).emit("isTypingInGroup", {
           typer,
           typing: typingData.isTyping,
           in: group,

@@ -44,7 +44,7 @@ const ContactsContainer = () => {
       return;
     }
 
-    socket.on("otherPersonTypingInDM", ({ from, to, isTyping }) => {
+    socket.on("isTypingInDM", ({ from, to, isTyping }) => {
       if (isTyping) {
         setDMTypingMap((prev) => ({ ...prev, [from]: true }));
 
@@ -65,7 +65,7 @@ const ContactsContainer = () => {
       }
     });
 
-    socket.on("personTypingInGroup", (typingData) => {
+    socket.on("isTypingInGroup", (typingData) => {
       const { typer, typing, in: typingIn } = typingData;
       const groupId = typingIn._id;
 
@@ -102,8 +102,8 @@ const ContactsContainer = () => {
     });
 
     return () => {
-      socket.off("otherPersonTypingInDM");
-      socket.off("personTypingInGroup");
+      socket.off("isTypingInDM");
+      socket.off("isTypingInGroup");
 
       Object.values(dmTimeoutsRef.current).forEach(clearTimeout);
       Object.values(gmTimeoutsRef.current).forEach(clearTimeout);

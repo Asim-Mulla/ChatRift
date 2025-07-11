@@ -109,13 +109,7 @@ export const removeNotification = async (req, res) => {
       return res.status(404).send("User not found!");
     }
 
-    const notification = user.notifications.find((n) => n.user === notifier);
-
-    if (!notification) {
-      return res.status(404).send("Notification not found!");
-    }
-
-    notification.count = 0;
+    user.notifications = user.notifications.filter((n) => n.user !== notifier);
 
     const savedUser = await user.save();
 
