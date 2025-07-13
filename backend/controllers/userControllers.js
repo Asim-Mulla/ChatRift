@@ -62,6 +62,7 @@ export const getDMContacts = async (req, res) => {
           lastName: "$contactInfo.lastName",
           image: "$contactInfo.image",
           color: "$contactInfo.color",
+          verified: "$contactInfo.verified",
         },
       },
       {
@@ -80,12 +81,13 @@ export const getUsersForGroup = async (req, res) => {
   try {
     const users = await User.find(
       { _id: { $ne: req.userId } },
-      "email firstName lastName _id"
+      "email firstName lastName _id verified"
     );
 
     const contacts = users.map((user) => ({
       label: user.firstName ? `${user.firstName} ${user.lastName}` : user.email,
       value: user._id,
+      verified: user.verified,
     }));
 
     return res.status(200).json({ contacts });
@@ -130,7 +132,7 @@ export const getUserInfo = async (req, res) => {
 
     const user = await User.findById(
       userId,
-      "_id email firstName lastName color profileSetup image"
+      "_id email firstName lastName color profileSetup image verified"
     );
 
     if (!user) {

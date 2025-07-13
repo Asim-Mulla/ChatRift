@@ -16,6 +16,7 @@ A modern, feature-rich real-time chat application built with the MERN stack, Soc
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens)
+![Google OAuth](https://img.shields.io/badge/Google-OAuth2-4285F4?style=for-the-badge&logo=google)
 
 **ChatRift** is a comprehensive real-time chat application that enables users to communicate through direct messages and group chats. Built with modern web technologies, it offers a seamless messaging experience with file sharing, emoji support, typing indicators, and robust user management features.
 
@@ -25,29 +26,17 @@ ChatRift provides a complete messaging platform with user authentication, contac
 
 ## UI Previews
 
-### Authentication & Profile
+| Login / Signup Page                                                                                                                                                                                        | Profile Management                                                                                                                                                                                | New Contact Selection                                                                                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Login/Signup Page](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/01-login-signup_fsufge.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/01-login-signup_fsufge.png) | [![Profile Management](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/02-profile_f5ftph.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/02-profile_f5ftph.png) | [![New Contact Selection](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/03-new-dm_bpimlp.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397863/03-new-dm_bpimlp.png) |
 
-| Login/Signup Page                                                                                                                                                                                                                                                      | Profile Management                                                                                                                                                                                                                                             |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Login/Signup Page](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/01%20Login-Signup-o7CCi1g59BYA3MHIYYxIiMeeSvjGBo.png "Login/Signup Page")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/01%20Login-Signup-o7CCi1g59BYA3MHIYYxIiMeeSvjGBo.png) | [![Profile Management](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/02%20Profile-UrNfoOipkXIg1c7U702CslQDfMTTMa.png "Profile Management")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/02%20Profile-UrNfoOipkXIg1c7U702CslQDfMTTMa.png) |
+| Chat with Emoji Support                                                                                                                                                                                      | File Sharing                                                                                                                                                                                      | Message Deletion                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Chat with Emoji Support](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/04-chat-emoji_lgzuyw.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/04-chat-emoji_lgzuyw.png) | [![File Sharing](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/05-chat-files_j4tidn.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/05-chat-files_j4tidn.png) | [![Message Deletion](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/06-message-delete_gbre1y.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/06-message-delete_gbre1y.png) |
 
-### Chat Interface
-
-| New Contact Selection                                                                                                                                                                                                                                                  | Chat with Emoji Support                                                                                                                                                                                                                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![New Contact Selection](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04%20New%20DM-TKkwGM7Si8tPZXOuGpSXIiu8ZVLTMk.png "New Contact Selection")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04%20New%20DM-TKkwGM7Si8tPZXOuGpSXIiu8ZVLTMk.png) | [![Chat with Emoji Support](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/05%20Chat%20Emoji-yyHi6SbTsEKDtViKlqBWjmDTSFOiF6.png "Chat with Emoji Support")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/05%20Chat%20Emoji-yyHi6SbTsEKDtViKlqBWjmDTSFOiF6.png) |
-
-### File Sharing & Message Management
-
-| File Sharing                                                                                                                                                                                                                                                                         | Message Deletion                                                                                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![File Sharing](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/09%20Chat%20file%20pdf%20docs-xMeHam3AegXvg2TvRY9Y1LB4s5MIH7.png "File Sharing")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/09%20Chat%20file%20pdf%20docs-xMeHam3AegXvg2TvRY9Y1LB4s5MIH7.png) | [![Message Deletion](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/10%20Delete%20message-PUFLM24K7xlMY6umMkdOtYotvLLjBc.png "Message Deletion")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/10%20Delete%20message-PUFLM24K7xlMY6umMkdOtYotvLLjBc.png) |
-
-### Group Management
-
-| Group Editing Interface                                                                                                                                                                                                                                        |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Group Editing](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/15%20Group%20edit-aXWKN72DJQ48JuLlgcbFwHMOUCmx2t.png "Group Editing")](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/15%20Group%20edit-aXWKN72DJQ48JuLlgcbFwHMOUCmx2t.png) |
+| New Group                                                                                                                                                                                         | Group Chat                                                                                                                                                                                      | Group Edit                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Group Creation](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/07-new-group_ehgnnb.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/07-new-group_ehgnnb.png) | [![Group Chat](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/08-group-chat_u9826a.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/08-group-chat_u9826a.png) | [![Group Editing](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/09-edit-group_djq7lb.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/09-edit-group_djq7lb.png) |
 
 ## Features
 
@@ -57,7 +46,6 @@ ChatRift provides a complete messaging platform with user authentication, contac
 
    - Instant messaging with Socket.IO
    - Live typing indicators for both DMs and groups
-   <!-- - Real-time message delivery and read receipts -->
    - Real-time message delivery
    - Online/offline status indicators
 
@@ -67,7 +55,6 @@ ChatRift provides a complete messaging platform with user authentication, contac
    - Comprehensive emoji picker with categories
    - File sharing (images, PDFs, documents, ZIP files, and more)
    - File download functionality
-   <!-- - Message timestamps and delivery status -->
    - Message timestamps
 
 3. **Contact Management**
@@ -87,7 +74,6 @@ ChatRift provides a complete messaging platform with user authentication, contac
 2. **Message Control**
    - Sender can delete their own messages
    - Real-time message deletion
-   <!-- - Message editing capabilities -->
 
 ### Group Chat Features
 
@@ -117,6 +103,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 
    - Secure user registration and login
    - JWT-based authentication
+   - Google OAuth 2.0 authentication
    - Password encryption with bcrypt
    - Session management
 
@@ -154,7 +141,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
 - **Real-time Communication**: Socket.IO
-- **Authentication**: JWT & bcrypt
+- **Authentication**: JWT and bcrypt
 - **File Storage**: Cloudinary with Multer
 - **Validation**: Validator.js
 - **Security**: CORS, Cookie Parser
@@ -167,13 +154,14 @@ ChatRift provides a complete messaging platform with user authentication, contac
 - Node.js (v16 or higher)
 - MongoDB Atlas account or local MongoDB installation
 - Cloudinary account for file storage
+- Google cloud console
 
 ### Frontend Setup
 
 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/Asim-Mulla/ChatRift.git
 cd frontend/
 ```
 
@@ -187,6 +175,7 @@ npm install
 
 ```bash
 VITE_SERVER_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id # you can get from cloud console
 ```
 
 4. Start the development server
@@ -213,12 +202,25 @@ npm install
 
 ```bash
 PORT=3000
+NODE_ENV=development # use'production' while deploying
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
+
+# Database
 ATLAS_DB_URL=your_mongodb_connection_string
+
+# Cloud media storage
 CLOUD_NAME=your_cloudinary_cloud_name
 CLOUD_API_KEY=your_cloudinary_api_key
 CLOUD_API_SECRET=your_cloudinary_api_secret
+
+# Google OAuth authentication
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Otp verification for regular authentication
+EMAIL=your_email
+EMAIL_PASSWORD=your_emails_app_password
 ```
 
 4. Start the server
@@ -231,7 +233,9 @@ npm run dev
 
 ### Authentication
 
-- `POST /api/auth/signup` - User registration
+- `POST /api/auth/get-otp` - Get otp on entered email for verification
+- `POST /api/auth/verify-otp-signup` - User Registration if correct otp
+- `POST /auth/google?code=${code}` - Login/Signup using google
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/user-info` - Get current user
@@ -298,11 +302,12 @@ npm run dev
 ## Security Features
 
 - JWT-based authentication
+- Google OAuth 2.0 authentication
+- Otp rate limiting
 - Password hashing with bcrypt
 - CORS protection
-- Input validation and sanitization
+- Input validation
 - File upload restrictions
-<!-- - Rate limiting (recommended for production) -->
 
 ## Contributing
 
@@ -317,13 +322,15 @@ npm run dev
 - [x] Typing indicator for group and dm
 - [x] Unread messages for group and dm
 - [x] Datestamp for messages
-- [ ] Google OAuth for authentication
+- [x] OTP verification for regular authentication
+- [x] Google OAuth for authentication
+- [ ] Read receipts (message seen status)
+- [ ] Message editing
 - [ ] Voice messages
 - [ ] Message reactions
 - [ ] Message forwarding
 - [ ] Message mark as read
-- [ ] Voice/video calling
-- [ ] Group voice/video calls
+- [ ] Group/Individual voice/video calls
 
 ## Author
 
@@ -336,6 +343,7 @@ npm run dev
 
 - React team for the amazing framework
 - Socket.IO team for real-time communication
+- Google OAuth for seamless authentication and authorization
 - shadcn/ui for beautiful UI components
 - Tailwind CSS for utility-first styling
 - Zustand for simple state management

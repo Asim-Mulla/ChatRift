@@ -140,6 +140,7 @@ const EditGroupModel = () => {
       return {
         label: `${contact?.firstName} ${contact?.lastName}`,
         value: contact?._id,
+        verified: contact.verified,
       };
     });
     setSelectedContacts(labelledContacts);

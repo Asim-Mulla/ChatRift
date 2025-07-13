@@ -4,6 +4,9 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import { cloudinary } from "../config/cloud.js";
 import validator from "validator";
+import { randomInt } from "crypto";
+import Otp from "../models/otpModel.js";
+import sendOtpEmail from "../utils/sendOtpEmail.js";
 
 const maxAge = 24 * 60 * 60 * 1000;
 const isProduction = process.env.NODE_ENV === "production";
@@ -14,22 +17,63 @@ const createToken = (email, userId) => {
   return token;
 };
 
-export const signup = async (req, res) => {
+export const sendOtp = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    if (!email || !validator.isEmail(email) || !password) {
+    if (!email || !validator.isEmail(email)) {
       return res.status(400).send("Invalid email or password");
-    }
-
-    if (password.length < 8) {
-      return res.status(200).send("Please enter a strong password");
     }
 
     const alreadyExists = await User.findOne({ email });
 
     if (alreadyExists) {
       return res.status(400).send("User already exists!");
+    }
+
+    const tooManyAttempts = await Otp.find({ email });
+    if (tooManyAttempts.length >= 3) {
+      return res.json({
+        success: false,
+        tooManyAttempts: true,
+        message: "Too many attempts, please try again later.",
+      });
+    }
+
+    const otp = randomInt(100000, 1000000).toString();
+
+    const newOtp = new Otp({ email, otp });
+
+    await newOtp.save();
+
+    await sendOtpEmail(email, `Your OTP is ${otp}`);
+
+    res.json({ success: true, message: "OTP sent to email." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+export const verifyOtpAndSignup = async (req, res) => {
+  try {
+    const { userData, otp } = req.body;
+    const { email, password } = userData;
+
+    if (!email || !password || !otp) {
+      return res.status(400).json("Missing required fields.");
+    }
+
+    const existingOtp = await Otp.findOne({ email, otp });
+
+    if (!existingOtp) {
+      return res.status(400).json("Invalid or expired otp.");
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json("Please enter a strong password (min 8 digits).");
     }
 
     const salt = await bcrypt.genSalt(7);
@@ -41,29 +85,31 @@ export const signup = async (req, res) => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    const sendTelegramNotification = async () => {
-      const message = `! New user signed up !
+    if (botToken && chatId) {
+      const sendTelegramNotification = async () => {
+        const message = `! New user signed up !
     User email :- ${user.email},
     `;
 
-      const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
-        message
-      )}`;
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
+          message
+        )}`;
 
-      try {
-        const response = await fetch(url);
-        const result = await response.json();
-        if (result.ok) {
-          // console.log("Notification sent successfully!");
-        } else {
-          console.error("Failed to send notification:", result);
+        try {
+          const response = await fetch(url);
+          const result = await response.json();
+          if (result.ok) {
+            // console.log("Notification sent successfully!");
+          } else {
+            console.error("Failed to send notification:", result);
+          }
+        } catch (error) {
+          console.error("Error sending message:", error);
         }
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
-    };
+      };
 
-    sendTelegramNotification();
+      sendTelegramNotification();
+    }
 
     res
       .status(201)
@@ -110,30 +156,32 @@ export const login = async (req, res) => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    const sendTelegramNotification = async () => {
-      const message = `! New user logged in !
-    ${user.firstName ? `${user.firstName} ${user.lastName}` : ""}
+    if (botToken && chatId) {
+      const sendTelegramNotification = async () => {
+        const message = `! New user logged in !
+    ${user.firstName ? `User name :- ${user.firstName} ${user.lastName}` : ""}
     User email :- ${user.email},
     `;
 
-      const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
-        message
-      )}`;
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
+          message
+        )}`;
 
-      try {
-        const response = await fetch(url);
-        const result = await response.json();
-        if (result.ok) {
-          // console.log("Notification sent successfully!");
-        } else {
-          console.error("Failed to send notification:", result);
+        try {
+          const response = await fetch(url);
+          const result = await response.json();
+          if (result.ok) {
+            // console.log("Notification sent successfully!");
+          } else {
+            console.error("Failed to send notification:", result);
+          }
+        } catch (error) {
+          console.error("Error sending message:", error);
         }
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
-    };
+      };
 
-    sendTelegramNotification();
+      sendTelegramNotification();
+    }
 
     res
       .status(200)
@@ -153,6 +201,7 @@ export const login = async (req, res) => {
           image: user.image,
           color: user.color,
           notifications: user.notifications,
+          verified: user.verified,
         },
       });
   } catch (error) {
@@ -184,6 +233,7 @@ export const getUserInfo = async (req, res) => {
         color: user.color,
         image: user.image,
         notifications: user.notifications,
+        verified: user.verified,
       },
     });
   } catch (error) {
@@ -216,6 +266,7 @@ export const updateProfile = async (req, res) => {
         lastName: user.lastName,
         color: user.color,
         notifications: user.notifications,
+        verified: user.verified,
       },
     });
   } catch (error) {

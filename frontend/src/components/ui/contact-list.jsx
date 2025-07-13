@@ -1,8 +1,8 @@
 import { useAppStore } from "@/store/store";
 import { Avatar, AvatarImage } from "./avatar";
 import { getColor } from "@/lib/utils";
-import { useEffect } from "react";
 import { removeNotification } from "@/services/userServices";
+import { GoVerified } from "react-icons/go";
 
 const ContactList = ({
   contacts,
@@ -82,13 +82,13 @@ const ContactList = ({
             }`}
             onClick={() => handleSelectContact(contact)}
           >
-            <div className="relative flex items-center justify-start gap-5 text-neutral-300">
+            <div className="relative flex items-center justify-start gap-5 text-neutral-300 pr-10">
               {!isGroup && (
                 <div className="relative">
                   <Avatar className=" h-10 w-10  rounded-full overflow-hidden">
                     {contact?.image?.url ? (
                       <AvatarImage
-                        src={contact?.image?.url}
+                        src={contact?.image?.url || "/placeholder.svg"}
                         alt="profile"
                         className={"object-cover w-full h-full bg-black"}
                         loading="lazy"
@@ -120,29 +120,50 @@ const ContactList = ({
                   </div>
                 </Avatar>
               )}
-              {isGroup ? (
-                <span style={ellipsisStyle} className="flex flex-col mr-15">
-                  {contact?.name}
-                  {GMTypingMap && GMTypingMap[contact?._id]?.typing ? (
-                    <span className="text-sm font-semibold italic text-purple-300">
-                      {GMTypingMap[contact?._id]?.typer} is typing...
-                    </span>
-                  ) : null}
-                </span>
-              ) : contact?.firstName ? (
-                <span style={ellipsisStyle} className="flex flex-col mr-15">
-                  {`${contact?.firstName} ${contact?.lastName}`}
-                  {DMTypingMap && DMTypingMap[contact?._id] ? (
-                    <span className="text-sm font-semibold italic text-purple-300">
-                      Typing...
-                    </span>
-                  ) : null}
-                </span>
-              ) : (
-                <span style={ellipsisStyle}>{contact?.email}</span>
-              )}
+
+              <div className="min-w-0 flex items-center gap-2 mr-5">
+                <div className="flex-1 min-w-0">
+                  {isGroup ? (
+                    <>
+                      <div style={ellipsisStyle} className="text-neutral-300">
+                        {contact?.name}
+                      </div>
+                      {GMTypingMap && GMTypingMap[contact?._id]?.typing && (
+                        <div
+                          className="text-sm font-semibold italic text-purple-300"
+                          style={ellipsisStyle}
+                        >
+                          {GMTypingMap[contact?._id]?.typer} is typing...
+                        </div>
+                      )}
+                    </>
+                  ) : contact?.firstName ? (
+                    <>
+                      <div style={ellipsisStyle} className="text-neutral-300">
+                        {`${contact?.firstName} ${contact?.lastName}`}
+                      </div>
+                      {DMTypingMap && DMTypingMap[contact?._id] && (
+                        <div className="text-sm font-semibold italic text-purple-300">
+                          Typing...
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={ellipsisStyle} className="text-neutral-300">
+                      {contact?.email}
+                    </div>
+                  )}
+                </div>
+
+                {!isGroup && contact.verified && (
+                  <div className="flex-shrink-0">
+                    <GoVerified />
+                  </div>
+                )}
+              </div>
+
               {notification && notification.count > 0 && (
-                <div className="absolute right-5 h-5 w-5 rounded-full flex items-center justify-center text-white border md:right-5 bg-purple-500">
+                <div className="absolute right-5 h-5 w-5 rounded-full flex items-center justify-center text-white border md:right-5 bg-purple-500 flex-shrink-0">
                   <span className="text-xs flex justify-center items-center">
                     {notification.count}
                   </span>

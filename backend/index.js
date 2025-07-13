@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import setupSocket from "./socket/setupSocket.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import groupRoutes from "./routes/groupRoutes.js";
+import authRouter from "./routes/googleAuthRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -33,6 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/message", messageRoutes);
 app.use("/api/group", groupRoutes);
+app.use("/auth", authRouter);
 
 const server = app.listen(port, () => {
   console.log("app is listening on port 3000");

@@ -2,6 +2,7 @@ import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import { X } from "lucide-react";
 import * as React from "react";
 import { forwardRef, useEffect } from "react";
+import { GoVerified } from "react-icons/go";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -278,6 +279,11 @@ const MultipleSelector = React.forwardRef(
                   data-disabled={disabled || undefined}
                 >
                   {option.label}
+                  {option.verified && (
+                    <div className="flex-shrink-0">
+                      <GoVerified className="h-4 w-4 " />
+                    </div>
+                  )}
                   <button
                     className={cn(
                       "ml-1 rounded-full text-white outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -407,7 +413,25 @@ const MultipleSelector = React.forwardRef(
                                   "cursor-default text-muted-foreground"
                               )}
                             >
-                              {option.label}
+                              <div className="flex items-center w-full min-w-0">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span
+                                    className=" min-w-0"
+                                    style={{
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                    }}
+                                  >
+                                    {option.label}
+                                  </span>
+                                  {option.verified && (
+                                    <div className="flex-shrink-0">
+                                      <GoVerified className="h-4 w-4 text-black" />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </CommandItem>
                           );
                         })}

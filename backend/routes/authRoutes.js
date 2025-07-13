@@ -1,12 +1,13 @@
 import express from "express";
 import {
   login,
-  signup,
+  sendOtp,
   getUserInfo,
   updateProfile,
   addProfileImage,
   deleteProfileImage,
   logout,
+  verifyOtpAndSignup,
 } from "../controllers/authControllers.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
 
@@ -17,7 +18,8 @@ import multer from "multer";
 import { storage } from "../config/cloud.js";
 const upload = multer({ storage });
 
-authRoutes.post("/signup", signup);
+authRoutes.post("/get-otp", sendOtp);
+authRoutes.post("/verify-otp-signup", verifyOtpAndSignup);
 authRoutes.post("/login", login);
 authRoutes.get("/user-info", verifyToken, getUserInfo);
 authRoutes.post("/update-profile", verifyToken, updateProfile);
@@ -25,7 +27,6 @@ authRoutes.post(
   "/add-profile-image",
   verifyToken,
   upload.single("profile-image"),
-  // verifyToken,
   addProfileImage
 );
 authRoutes.post("/delete-profile-image", verifyToken, deleteProfileImage);

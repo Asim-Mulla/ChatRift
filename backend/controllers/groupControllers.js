@@ -40,7 +40,7 @@ export const createGroup = async (req, res) => {
     });
 
     await newGroup.save();
-    await newGroup.populate("members", "firstName lastName _id");
+    await newGroup.populate("members", "firstName lastName verified _id");
 
     return res.status(201).json({ group: newGroup });
   } catch (error) {
@@ -56,7 +56,7 @@ export const getUserGroups = async (req, res) => {
       $or: [{ admin: userId }, { members: userId }],
     })
       .sort({ updatedAt: -1 })
-      .populate("members", "firstName lastName _id");
+      .populate("members", "firstName lastName verified _id");
 
     return res.status(201).json({ groups });
   } catch (error) {
@@ -77,7 +77,7 @@ export const getGroupMessages = async (req, res) => {
       path: "messages",
       populate: {
         path: "sender",
-        select: "email firstName lastName image color _id",
+        select: "email firstName lastName image color verified _id",
       },
     });
 
@@ -114,7 +114,7 @@ export const changeGroupName = async (req, res) => {
 
     group.name = name;
     await group.save();
-    await group.populate("members", "firstName lastName _id");
+    await group.populate("members", "firstName lastName _id verified");
 
     res.status(201).json({ group });
   } catch (error) {
@@ -139,7 +139,7 @@ export const changeGroupMembers = async (req, res) => {
     const group = await Group.findOne({
       admin: userId,
       name: originalName,
-    }).populate("members", "firstName lastName _id");
+    }).populate("members", "firstName lastName _id verified");
 
     if (!group) {
       return res.status(400).send("Group not found!");
@@ -151,7 +151,7 @@ export const changeGroupMembers = async (req, res) => {
     group.members = newMembers;
 
     await group.save();
-    await group.populate("members", "firstName lastName _id");
+    await group.populate("members", "firstName lastName _id verified");
 
     const removedMembers = oldMembers.filter(
       (oldmember) =>
@@ -189,7 +189,7 @@ export const exitGroup = async (req, res) => {
     group.members = newMembers;
 
     await group.save();
-    await group.populate("members", "firstName lastName _id");
+    await group.populate("members", "firstName lastName _id verified");
 
     return res.status(200).json({ group });
   } catch (error) {

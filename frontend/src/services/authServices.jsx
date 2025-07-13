@@ -5,10 +5,14 @@ const api = axios.create({
   baseURL: serverUrl,
 });
 
-export const signup = (email, password) => {
+export const getOtpForSignup = (email) => {
+  return api.post("/api/auth/get-otp", { email });
+};
+
+export const verifyOtpAndSignup = (userData, otp) => {
   return api.post(
-    "/api/auth/signup",
-    { email, password },
+    "/api/auth/verify-otp-signup",
+    { userData, otp },
     { withCredentials: true }
   );
 };
@@ -19,6 +23,10 @@ export const login = (email, password) => {
     { email, password },
     { withCredentials: true }
   );
+};
+
+export const loginWithGoogle = (code) => {
+  return api.get(`/auth/google?code=${code}`, { withCredentials: true });
 };
 
 export const getUserData = () => {

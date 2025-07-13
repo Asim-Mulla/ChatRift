@@ -4,6 +4,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { getColor } from "@/lib/utils";
 import { logout } from "@/services/authServices";
 import { useAppStore } from "@/store/store";
+import { GoVerified } from "react-icons/go";
 import { MdEdit, MdOutlineLogout } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -59,6 +60,11 @@ const ProfileInfo = () => {
             ? `${userInfo.firstName} ${userInfo.lastName}`
             : userInfo?.email}
         </span>
+        {userInfo.verified && (
+          <span className="mr-5">
+            <GoVerified />
+          </span>
+        )}
       </div>
       <div className="flex gap-5">
         <MdEdit

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { GoVerified } from "react-icons/go";
 import { getColor } from "@/lib/utils";
 import { getContacts } from "@/services/userServices";
 import { useAppStore } from "@/store/store";
@@ -14,7 +15,8 @@ import React, { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 
 const NewContact = () => {
-  const { setSelectedChatType, setSelectedChatData } = useAppStore();
+  const { setSelectedChatType, DMOnlineContacts, setSelectedChatData } =
+    useAppStore();
   const [openNewContactModal, setOpenNewContactModal] = useState(false);
   const [searchedContacts, setSearchedContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,48 +80,58 @@ const NewContact = () => {
                     .map((contact) => (
                       <div
                         key={contact._id}
-                        className="flex items-center gap-3 cursor-pointer p-3 rounded-md hover:bg-[#2a2b33]"
+                        className="flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-[#2a2b33]"
                         onClick={() => handleSelectNewContact(contact)}
                       >
-                        <div className="w-12 h-12 relative">
-                          <Avatar className="h-12 w-12  rounded-full overflow-hidden">
-                            {contact?.image?.url ? (
-                              <AvatarImage
-                                src={contact?.image?.url}
-                                alt="profile"
-                                className={
-                                  "object-cover w-full h-full bg-black"
-                                }
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div
-                                className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
-                                  contact?.color
-                                )}`}
-                              >
-                                {contact.firstName && contact.lastName
-                                  ? contact.firstName
-                                      .trim()
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                    contact.lastName
-                                      .trim()
-                                      .charAt(0)
-                                      .toUpperCase()
-                                  : contact.email.split("").shift()}
-                              </div>
-                            )}
-                          </Avatar>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 relative">
+                            <Avatar className="h-12 w-12  rounded-full overflow-hidden">
+                              {contact?.image?.url ? (
+                                <AvatarImage
+                                  src={contact?.image?.url}
+                                  alt="profile"
+                                  className={
+                                    "object-cover w-full h-full bg-black"
+                                  }
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div
+                                  className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
+                                    contact?.color
+                                  )}`}
+                                >
+                                  {contact.firstName && contact.lastName
+                                    ? contact.firstName
+                                        .trim()
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                      contact.lastName
+                                        .trim()
+                                        .charAt(0)
+                                        .toUpperCase()
+                                    : contact.email.split("").shift()}
+                                </div>
+                              )}
+                            </Avatar>
+                          </div>
+                          <div className="flex flex-col">
+                            <span>
+                              {contact.firstName && contact.lastName
+                                ? `${contact.firstName} ${contact.lastName}`
+                                : ""}
+                            </span>
+                            <span>{contact.email}</span>
+                          </div>
+                          {contact.verified && (
+                            <div>
+                              <GoVerified />
+                            </div>
+                          )}
                         </div>
-                        <div className="flex flex-col">
-                          <span>
-                            {contact.firstName && contact.lastName
-                              ? `${contact.firstName} ${contact.lastName}`
-                              : ""}
-                          </span>
-                          <span>{contact.email}</span>
-                        </div>
+                        {DMOnlineContacts?.includes(contact?._id) && (
+                          <span className="h-2 w-2 rounded-full ring-2 ring-purple-300 bg-purple-500" />
+                        )}
                       </div>
                     ))}
               </div>

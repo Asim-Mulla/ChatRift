@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { GoVerified } from "react-icons/go";
 
 const MessageContainer = () => {
   const scrollRef = useRef();
@@ -529,9 +530,7 @@ const MessageContainer = () => {
       >
         {!isOwnMessage && !againSameSender && (
           <div
-            className={`flex items-end gap-1 sm:gap-2 mb-2 ${
-              !againSameSender ? "" : ""
-            } cursor-pointer`}
+            className={`flex items-end gap-1 sm:gap-2 mb-2 cursor-pointer`}
             onClick={() => {
               setDm(message.sender);
               setOpenDMDialog(true);
@@ -561,9 +560,14 @@ const MessageContainer = () => {
                 </div>
               )}
             </Avatar>
-            <span className="text-xs sm:text-sm text-gray-400 truncate">
+            <span className="text-xs sm:text-sm text-gray-400">
               ~{`${message.sender.firstName} ${message.sender.lastName}`}
             </span>
+            {message.sender.verified && (
+              <span>
+                <GoVerified />
+              </span>
+            )}
           </div>
         )}
 

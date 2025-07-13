@@ -3,10 +3,13 @@ import { createRoot } from "react-dom/client";
 import { Toaster } from "sonner";
 import App from "./App.jsx";
 import "./index.css";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 createRoot(document.getElementById("root")).render(
   <SocketProvider>
-    <App clasaName="App" />
-    <Toaster closeButton position="top-center" />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <App clasaName="App" />
+      <Toaster closeButton position="top-center" />
+    </GoogleOAuthProvider>
   </SocketProvider>
 );
