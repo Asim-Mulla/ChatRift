@@ -12,6 +12,8 @@ import {
   MdClose,
   MdOutlineDoNotDisturb,
 } from "react-icons/md";
+import { IoIosMusicalNotes } from "react-icons/io";
+import { FiVideo } from "react-icons/fi";
 import { toast } from "sonner";
 import DeleteMessageDialog from "./DeleteMessageDialog/DeleteMessageDialog";
 import { getUserInfo, removeNotification } from "@/services/userServices";
@@ -27,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { GoVerified } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
+import { RiVideoFill } from "react-icons/ri";
 
 const MessageContainer = () => {
   const scrollRef = useRef();
@@ -203,6 +206,10 @@ const MessageContainer = () => {
       return <MdPictureAsPdf className="text-red-500" />;
     } else if (["zip", "rar", "7z"].includes(extension)) {
       return <MdFolderZip className="text-yellow-500" />;
+    } else if (extension === "mp3") {
+      return <IoIosMusicalNotes className="text-purple-500" />;
+    } else if (extension === "mp4") {
+      return <RiVideoFill className="text-purple-500" />;
     } else {
       return <MdDescription className="text-gray-500" />;
     }

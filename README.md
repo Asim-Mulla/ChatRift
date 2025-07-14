@@ -53,7 +53,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 
    - Text messages with emoji support
    - Comprehensive emoji picker with categories
-   - File sharing (images, PDFs, documents, ZIP files, and more)
+   - File sharing (images, PDFs, documents, ZIP files, audio, video, and more)
    - File download functionality
    - Message timestamps
 
@@ -329,7 +329,6 @@ npm run dev
 - [ ] Voice messages
 - [ ] Message reactions
 - [ ] Message forwarding
-- [ ] Message mark as read
 - [ ] Group/Individual voice/video calls
 
 ## Author

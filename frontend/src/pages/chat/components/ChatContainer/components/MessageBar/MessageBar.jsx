@@ -286,7 +286,7 @@ const MessageBar = () => {
             className="hidden"
             ref={fileRef}
             onChange={handleAttachmentChange}
-            accept="image/*,.pdf,.txt,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+            accept="image/*,.pdf,.txt,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp3,.mp4"
             disabled={uploading}
           />
 

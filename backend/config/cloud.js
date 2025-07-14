@@ -39,6 +39,8 @@ const getFileFormat = (file) => {
     gif: "gif",
     webp: "webp",
     svg: "svg",
+    mp3: "mp3",
+    mp4: "mp4",
   };
 
   return formatMap[extension] || extension;

@@ -43,6 +43,9 @@ const upload = multer({
       "application/vnd.ms-powerpoint",
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       "application/octet-stream",
+      // Audio files
+      "audio/mpeg",
+      "video/mp4",
     ];
 
     if (allAllowedTypes.includes(file.mimetype)) {
