@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { GoVerified } from "react-icons/go";
+import { IoCheckmarkDoneSharp } from "react-icons/io5";
 
 const MessageContainer = () => {
   const scrollRef = useRef();
@@ -43,6 +44,7 @@ const MessageContainer = () => {
     setSelectedChatData,
     setSelectedChatType,
     userInfo,
+    receiverUnreadCount,
   } = useAppStore();
   const [showImage, setShowImage] = useState(false);
   const [dm, setDm] = useState();
@@ -341,6 +343,8 @@ const MessageContainer = () => {
     }, {});
 
     const unreadStartIndex = selectedChatMessages?.length - notifications;
+    const receiverUnreadStartIndex =
+      selectedChatMessages?.length - receiverUnreadCount;
     let globalMessageIndex = 0;
 
     // Render each date group
@@ -357,12 +361,19 @@ const MessageContainer = () => {
           <div className="pb-2">
             {messages.map((message, messageIndex) => {
               const isUnreadStart = globalMessageIndex === unreadStartIndex;
+              const isReceiverUnreadStart =
+                globalMessageIndex >= receiverUnreadStartIndex;
               globalMessageIndex++;
               return (
                 <div key={`${groupIndex}-${messageIndex}`}>
                   {isUnreadStart && renderNotification()}
                   {selectedChatType === "Contact" &&
-                    renderContactMessages(message, messageIndex, messages)}
+                    renderContactMessages(
+                      message,
+                      messageIndex,
+                      messages,
+                      isReceiverUnreadStart
+                    )}
                   {selectedChatType === "Group" &&
                     renderGroupMessages(message, messageIndex, messages)}
                 </div>
@@ -374,7 +385,12 @@ const MessageContainer = () => {
     );
   };
 
-  const renderContactMessages = (message, messageIndex, messagesInGroup) => {
+  const renderContactMessages = (
+    message,
+    messageIndex,
+    messagesInGroup,
+    isReceiverUnreadStart
+  ) => {
     const isOwnMessage = message?.sender === userInfo?.id;
     const againSameSender =
       messageIndex > 0 &&
@@ -418,11 +434,20 @@ const MessageContainer = () => {
             >
               {message?.content}
               {canDelete && <DeleteMessageDialog message={message} />}
-              <div className="text-xs text-gray-600 mt-1 text-right">
+              <div className="flex items-center justify-end gap-1 text-xs text-gray-600 mt-1 text-right">
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
+                {isOwnMessage && isReceiverUnreadStart ? (
+                  <span className="text-[16px]">
+                    <IoCheckmarkDoneSharp />
+                  </span>
+                ) : isOwnMessage ? (
+                  <span className="text-[16px] text-purple-500">
+                    <IoCheckmarkDoneSharp />
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -501,11 +526,20 @@ const MessageContainer = () => {
                 </div>
               </div>
             )}
-            <div className="text-xs text-gray-500 mt-1 text-right">
+            <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500 mt-1 text-right">
               {new Date(message.createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
+              {isOwnMessage && isReceiverUnreadStart ? (
+                <span className="text-[16px]">
+                  <IoCheckmarkDoneSharp />
+                </span>
+              ) : isOwnMessage ? (
+                <span className="text-[16px] text-purple-500">
+                  <IoCheckmarkDoneSharp />
+                </span>
+              ) : null}
             </div>
             {canDelete && <DeleteMessageDialog message={message} />}
           </div>

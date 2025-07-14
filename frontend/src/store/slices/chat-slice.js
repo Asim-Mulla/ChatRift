@@ -6,6 +6,8 @@ export const createChatSlice = (set, get) => ({
   DMOnlineContacts: [],
   groups: [],
   notifications: 0,
+  receiverUnreadCount: 0,
+  setReceiverUnreadCount: (receiverUnreadCount) => set({ receiverUnreadCount }),
   setNotifications: (notifications) => set({ notifications }),
   setSelectedChatType: (selectedChatType) => set({ selectedChatType }),
   setSelectedChatData: (selectedChatData) => set({ selectedChatData }),

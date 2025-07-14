@@ -1,5 +1,3 @@
-"use client";
-
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useSocket } from "@/Context/SocketContext";
 import { getColor } from "@/lib/utils";
@@ -165,7 +163,7 @@ const ChatHeader = () => {
               >
                 {chatName}
               </div>
-              {selectedChatType === "Contact" && selectedChatData.verified && (
+              {selectedChatType === "Contact" && selectedChatData?.verified && (
                 <div className="flex-shrink-0">
                   <GoVerified />
                 </div>

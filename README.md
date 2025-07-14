@@ -324,7 +324,7 @@ npm run dev
 - [x] Datestamp for messages
 - [x] OTP verification for regular authentication
 - [x] Google OAuth for authentication
-- [ ] Read receipts (message seen status)
+- [x] Read receipts (message seen status)
 - [ ] Message editing
 - [ ] Voice messages
 - [ ] Message reactions

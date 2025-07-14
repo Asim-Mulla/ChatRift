@@ -11,7 +11,15 @@ import { toast } from "sonner";
 const MessageBar = () => {
   const socket = useSocket();
   const [message, setMessage] = useState("");
-  const { selectedChatType, selectedChatData, userInfo } = useAppStore();
+  const {
+    selectedChatType,
+    selectedChatData,
+    userInfo,
+    receiverUnreadCount,
+    setReceiverUnreadCount,
+    DMContacts,
+    setDMContacts,
+  } = useAppStore();
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const emojiRef = useRef();
@@ -74,6 +82,31 @@ const MessageBar = () => {
         from: userInfo.id,
         to: selectedChatData._id,
       });
+
+      setReceiverUnreadCount(receiverUnreadCount + 1);
+
+      const updatedDMContacts = DMContacts.map((contact) => {
+        if (contact._id === selectedChatData._id) {
+          const notifications = contact.notifications?.find(
+            (notifier) => notifier.user === userInfo.id
+          );
+          let updatedNotifications = null;
+          if (notifications) {
+            updatedNotifications = contact.notifications.map((notifier) => {
+              if (notifier.user === userInfo.id) {
+                return { ...notifier, count: notifier.count + 1 };
+              } else {
+                return notifier;
+              }
+            });
+          } else {
+            updatedNotifications = [{ user: userInfo.id, count: 1 }];
+          }
+          contact.notifications = updatedNotifications;
+        }
+        return contact;
+      });
+      setDMContacts(updatedDMContacts);
     } else if (selectedChatType === "Group") {
       const selectedChat = {
         _id: selectedChatData._id,
@@ -147,6 +180,33 @@ const MessageBar = () => {
                   fileCloudName: res.data.fileCloudName,
                 },
               });
+
+              setReceiverUnreadCount(receiverUnreadCount + 1);
+
+              const updatedDMContacts = DMContacts.map((contact) => {
+                if (contact._id === selectedChatData._id) {
+                  const notifications = contact.notifications?.find(
+                    (notifier) => notifier.user === userInfo.id
+                  );
+                  let updatedNotifications = null;
+                  if (notifications) {
+                    updatedNotifications = contact.notifications.map(
+                      (notifier) => {
+                        if (notifier.user === userInfo.id) {
+                          return { ...notifier, count: notifier.count + 1 };
+                        } else {
+                          return notifier;
+                        }
+                      }
+                    );
+                  } else {
+                    updatedNotifications = [{ user: userInfo.id, count: 1 }];
+                  }
+                  contact.notifications = updatedNotifications;
+                }
+                return contact;
+              });
+              setDMContacts(updatedDMContacts);
             } else if (selectedChatType === "Group") {
               socket.emit("sendGroupMessage", {
                 sender: userInfo.id,

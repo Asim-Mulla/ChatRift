@@ -2,7 +2,6 @@ import { useAppStore } from "@/store/store";
 import { io } from "socket.io-client";
 import { createContext, useContext, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { removeNotification } from "@/services/userServices";
 
 const SocketContext = createContext(null);
 
@@ -77,7 +76,47 @@ export const SocketProvider = ({ children }) => {
           });
         }
 
+        if (
+          selectedChatType === "Contact" &&
+          userInfo.id === message.receiver._id &&
+          selectedChatData._id === message.sender._id
+        ) {
+          // emit message read
+          const to = message.sender._id;
+          const notifier = message?.receiver?._id;
+          socket.current.emit("messageRead", {
+            to,
+            notifier,
+          });
+        }
+
         bringContactToTop(message);
+      };
+
+      const handleMessageRead = ({ notifier }) => {
+        const {
+          selectedChatData,
+          setReceiverUnreadCount,
+          DMContacts,
+          setDMContacts,
+          userInfo,
+        } = useAppStore.getState();
+
+        if (selectedChatData?._id === notifier) {
+          setReceiverUnreadCount(0);
+        }
+
+        const updatedDMContacts = DMContacts.map((contact) => {
+          if (contact._id === notifier) {
+            const contactsNewNotifications = contact?.notifications.filter(
+              (n) => n.user !== userInfo.id
+            );
+            return { ...contact, notifications: contactsNewNotifications };
+          } else {
+            return contact;
+          }
+        });
+        setDMContacts(updatedDMContacts);
       };
 
       const handleReceiveGroupMessage = (message) => {
@@ -204,6 +243,7 @@ export const SocketProvider = ({ children }) => {
       socket.current.on("connect", () => {});
       socket.current.on("onlineContacts", handleDmOnlineContacts);
       socket.current.on("receiveMessage", handleReceiveMessage);
+      socket.current.on("messageRead", handleMessageRead);
       socket.current.on("receiveGroupMessage", handleReceiveGroupMessage);
       socket.current.on("messageDeleted", handleMessageDeleted);
       socket.current.on("groupCreated", handleGroupCreated);

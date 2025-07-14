@@ -3,6 +3,7 @@ import { Avatar, AvatarImage } from "./avatar";
 import { getColor } from "@/lib/utils";
 import { removeNotification } from "@/services/userServices";
 import { GoVerified } from "react-icons/go";
+import { useSocket } from "@/Context/SocketContext";
 
 const ContactList = ({
   contacts,
@@ -19,7 +20,10 @@ const ContactList = ({
     setSelectedChatType,
     setSelectedChatMessages,
     DMOnlineContacts,
+    setReceiverUnreadCount,
   } = useAppStore();
+
+  const socket = useSocket();
 
   const handleSelectContact = async (contact) => {
     if (isGroup) {
@@ -32,6 +36,19 @@ const ContactList = ({
       userInfo?.notifications?.find((notifier) => notifier.user === contact._id)
         ?.count || 0;
 
+    if (!isGroup) {
+      if (contact.notifications.length) {
+        const hasUnreadMessages = contact.notifications.find(
+          (notifier) => notifier.user === userInfo.id
+        );
+        if (hasUnreadMessages) {
+          setReceiverUnreadCount(hasUnreadMessages.count);
+        }
+      } else {
+        setReceiverUnreadCount(0);
+      }
+    }
+
     setSelectedChatData(contact);
 
     setNotifications(notifications);
@@ -39,6 +56,17 @@ const ContactList = ({
     const updatedNotifications = userInfo.notifications.filter(
       (notifier) => notifier.user !== contact._id
     );
+
+    if (notifications) {
+      const to = contact._id;
+      const notifier = userInfo.id;
+      if (socket) {
+        socket.emit("messageRead", {
+          to,
+          notifier,
+        });
+      }
+    }
 
     setUserInfo({ ...userInfo, notifications: updatedNotifications });
 
@@ -155,7 +183,7 @@ const ContactList = ({
                   )}
                 </div>
 
-                {!isGroup && contact.verified && (
+                {!isGroup && contact?.verified && (
                   <div className="flex-shrink-0">
                     <GoVerified />
                   </div>

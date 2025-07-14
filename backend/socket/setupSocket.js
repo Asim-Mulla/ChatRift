@@ -68,8 +68,14 @@ const setupSocket = (server) => {
     await newMessage.save();
 
     const messageData = await Message.findById(newMessage._id)
-      .populate("sender", "id email firstName lastName image color verified")
-      .populate("receiver", "id email firstName lastName image color verified");
+      .populate(
+        "sender",
+        "id email firstName lastName image color verified notifications"
+      )
+      .populate(
+        "receiver",
+        "id email firstName lastName image color verified notifications"
+      );
 
     // Emit to sender
     if (senderSocketId) {
@@ -98,6 +104,16 @@ const setupSocket = (server) => {
     }
 
     await receiver.save();
+  };
+
+  const handleMessageRead = ({ to, notifier }) => {
+    const toSocketId = userSocketMap[to];
+
+    if (toSocketId) {
+      io.to(toSocketId).emit("messageRead", {
+        notifier,
+      });
+    }
   };
 
   // Sending group message
@@ -301,6 +317,7 @@ const setupSocket = (server) => {
     socket.on("isTypingInDM", sendIsTypingForDM);
     socket.on("isTypingInGroup", sendIsTypingForGroup);
     socket.on("sendMessage", sendMessage);
+    socket.on("messageRead", handleMessageRead);
     socket.on("deleteMessage", handleDeleteMessage);
     socket.on("groupCreated", handleGroupCreated);
     socket.on("changedGroupName", handleChangedGroupName);
