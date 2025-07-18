@@ -116,6 +116,35 @@ const setupSocket = (server) => {
     }
   };
 
+  const handleMessageEdited = ({ editedMessage, group }) => {
+    if (group && group.members.length) {
+      group.members.forEach((memberId) => {
+        const memberSocketId = userSocketMap[memberId];
+
+        if (memberSocketId) {
+          io.to(memberSocketId).emit("messageEdited", { editedMessage, group });
+        }
+      });
+
+      const adminSocketId = userSocketMap[group.admin];
+
+      if (adminSocketId) {
+        io.to(adminSocketId).emit("messageEdited", { editedMessage, group });
+      }
+    } else {
+      const senderSocketId = userSocketMap[editedMessage.sender];
+      const receiverSocketId = userSocketMap[editedMessage.receiver];
+
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageEdited", { editedMessage });
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageEdited", { editedMessage });
+      }
+    }
+  };
+
   // Sending group message
   const sendAGroupMessage = async (message) => {
     const { groupId } = message;
@@ -318,6 +347,7 @@ const setupSocket = (server) => {
     socket.on("isTypingInGroup", sendIsTypingForGroup);
     socket.on("sendMessage", sendMessage);
     socket.on("messageRead", handleMessageRead);
+    socket.on("messageEdited", handleMessageEdited);
     socket.on("deleteMessage", handleDeleteMessage);
     socket.on("groupCreated", handleGroupCreated);
     socket.on("changedGroupName", handleChangedGroupName);

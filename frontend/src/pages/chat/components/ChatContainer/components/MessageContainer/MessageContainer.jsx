@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { getColor } from "@/lib/utils";
 import { getGroupMessages } from "@/services/groupServices";
-import { getMessages, deleteMessage } from "@/services/messageServices";
+import { getMessages } from "@/services/messageServices";
 import { useAppStore } from "@/store/store";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -13,7 +13,6 @@ import {
   MdOutlineDoNotDisturb,
 } from "react-icons/md";
 import { IoIosMusicalNotes } from "react-icons/io";
-import { FiVideo } from "react-icons/fi";
 import { toast } from "sonner";
 import DeleteMessageDialog from "./DeleteMessageDialog/DeleteMessageDialog";
 import { getUserInfo, removeNotification } from "@/services/userServices";
@@ -30,6 +29,7 @@ import {
 import { GoVerified } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { RiVideoFill } from "react-icons/ri";
+import EditMessage from "./EditMessage/EditMessage";
 
 const MessageContainer = () => {
   const scrollRef = useRef();
@@ -56,6 +56,7 @@ const MessageContainer = () => {
     url: "",
     fileName: "",
   });
+  const [currentlyEditingId, setCurrentlyEditingId] = useState(null);
 
   const fetctMessages = async () => {
     try {
@@ -403,6 +404,7 @@ const MessageContainer = () => {
       messageIndex > 0 &&
       message?.sender === messagesInGroup[messageIndex - 1]?.sender;
     const canDelete = isOwnMessage;
+    const canEdit = isOwnMessage;
 
     return (
       <div
@@ -441,7 +443,9 @@ const MessageContainer = () => {
             >
               {message?.content}
               {canDelete && <DeleteMessageDialog message={message} />}
-              <div className="flex items-center justify-end gap-1 text-xs text-gray-600 mt-1 text-right">
+              {canEdit && <EditMessage message={message} />}
+              <div className="flex items-center justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
+                {message.edited && <span>Edited</span>}
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -562,6 +566,7 @@ const MessageContainer = () => {
       message?.sender?._id === messagesInGroup[messageIndex - 1]?.sender?._id;
     const isAdmin = selectedChatData.admin === userInfo.id;
     const canDelete = isOwnMessage || isAdmin;
+    const canEdit = isOwnMessage;
 
     return (
       <div
@@ -655,7 +660,9 @@ const MessageContainer = () => {
             >
               {message?.content}
               {canDelete && <DeleteMessageDialog message={message} />}
-              <div className="text-xs text-gray-500 mt-1 text-right">
+              {canEdit && <EditMessage message={message} />}
+              <div className="flex justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
+                {message.edited && <span>Edited</span>}
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",

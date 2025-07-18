@@ -119,6 +119,44 @@ export const SocketProvider = ({ children }) => {
         setDMContacts(updatedDMContacts);
       };
 
+      const handleMessageEdited = ({ editedMessage, group }) => {
+        const {
+          selectedChatData,
+          selectedChatType,
+          setSelectedChatMessages,
+          selectedChatMessages,
+        } = useAppStore.getState();
+        if (
+          selectedChatType === "Group" &&
+          group &&
+          selectedChatData?._id === group.groupId
+        ) {
+          const updatedMessages = selectedChatMessages.map((message) => {
+            if (message._id === editedMessage._id) {
+              return editedMessage;
+            } else {
+              return message;
+            }
+          });
+
+          setSelectedChatMessages(updatedMessages);
+        } else if (
+          selectedChatType === "Contact" &&
+          (selectedChatData?._id === editedMessage?.sender ||
+            selectedChatData?._id === editedMessage?.receiver)
+        ) {
+          const updatedMessages = selectedChatMessages.map((message) => {
+            if (message._id === editedMessage._id) {
+              return editedMessage;
+            } else {
+              return message;
+            }
+          });
+
+          setSelectedChatMessages(updatedMessages);
+        }
+      };
+
       const handleReceiveGroupMessage = (message) => {
         const {
           selectedChatData,
@@ -244,6 +282,7 @@ export const SocketProvider = ({ children }) => {
       socket.current.on("onlineContacts", handleDmOnlineContacts);
       socket.current.on("receiveMessage", handleReceiveMessage);
       socket.current.on("messageRead", handleMessageRead);
+      socket.current.on("messageEdited", handleMessageEdited);
       socket.current.on("receiveGroupMessage", handleReceiveGroupMessage);
       socket.current.on("messageDeleted", handleMessageDeleted);
       socket.current.on("groupCreated", handleGroupCreated);

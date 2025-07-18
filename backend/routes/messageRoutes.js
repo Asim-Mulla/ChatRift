@@ -4,6 +4,7 @@ import {
   getMessages,
   uploadFile,
   deleteMessage,
+  editMessage,
 } from "../controllers/messageControllers.js";
 
 const messageRoutes = express.Router();
@@ -67,6 +68,7 @@ messageRoutes.post(
   uploadFile
 );
 messageRoutes.delete("/delete", verifyToken, deleteMessage);
+messageRoutes.patch("/edit", verifyToken, editMessage);
 
 // Error handling middleware for multer
 messageRoutes.use((error, req, res, next) => {

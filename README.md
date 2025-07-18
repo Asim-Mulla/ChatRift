@@ -256,6 +256,7 @@ npm run dev
 - `GET /api/message/get-messages/:otherUserId` - Get chat messages
 - `POST /api/message/upload-file` - Send image or file in a message
 - `DELETE /api/message/delete` - Delete message
+- `PATCH /api/message/edit` - Edit message
 
 ### Groups
 
@@ -276,6 +277,7 @@ npm run dev
 - `isTypingInGroup` - Sends typing indicator for group chats
 - `sendMessage` - Sends new direct message
 - `deleteMessage` - Deletes direct message instantly
+- `messageEdited` - Message edited instantly
 - `groupCreated` - Notifies group members of new group creation
 - `sendGroupMessage` - Sends new group message
 - `changedGroupName` - Updates group name
@@ -292,6 +294,7 @@ npm run dev
 - `receiveMessage` - Delivers direct message to recipient
 - `receiveGroupMessage` - Delivers group message to all members
 - `messageDeleted` - Notifies of instantly deleted message
+- `messageEdited` - Message edited instantly
 - `groupCreated` - Notifies members of group creation
 - `changedGroupName` - Broadcasts group name changes
 - `changedGroupMembers` - Prevents removed members from sending messages instantly
@@ -325,7 +328,7 @@ npm run dev
 - [x] OTP verification for regular authentication
 - [x] Google OAuth for authentication
 - [x] Read receipts (message seen status)
-- [ ] Message editing
+- [x] Message editing
 - [ ] Voice messages
 - [ ] Message reactions
 - [ ] Message forwarding

@@ -109,3 +109,45 @@ export const deleteMessage = async (req, res) => {
     return res.status(500).send("Internal server error");
   }
 };
+
+export const editMessage = async (req, res) => {
+  try {
+    const { message, editedContent } = req.body;
+    const { userId } = req;
+    const isGroupMessage = message?.sender?._id;
+
+    if (message.messageType !== "text") {
+      return res.status(400).send("Only text messages can be edited.");
+    }
+
+    if (isGroupMessage) {
+      if (message.sender._id !== userId) {
+        return res.status(400).send("Access Denied");
+      }
+    } else {
+      if (message.sender !== userId) {
+        return res.status(400).send("Access Denied");
+      }
+    }
+
+    let editedMessage;
+    if (isGroupMessage) {
+      editedMessage = await Message.findByIdAndUpdate(
+        message._id,
+        { content: editedContent, edited: true },
+        { new: true }
+      ).populate("sender", "_id firstName lastName email color image verified");
+    } else {
+      editedMessage = await Message.findByIdAndUpdate(
+        message._id,
+        { content: editedContent, edited: true },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({ editedMessage });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal server error");
+  }
+};

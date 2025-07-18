@@ -24,3 +24,11 @@ export const deleteMessage = (message, group) => {
     withCredentials: true,
   });
 };
+
+export const editMessage = (message, editedContent) => {
+  return api.patch(
+    "/api/message/edit",
+    { message, editedContent },
+    { withCredentials: true }
+  );
+};

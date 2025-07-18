@@ -71,6 +71,7 @@ const DeleteMessageDialog = ({ message }) => {
           error: (err) => {
             console.log(err);
             console.log(err.response.data);
+            return err?.response?.data || "Error while deleting message.";
           },
         }
       );
@@ -93,7 +94,7 @@ const DeleteMessageDialog = ({ message }) => {
       <button
         className={`absolute -top-2 ${
           isOwnMessage ? "-left-2" : "-right-2"
-        } bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}
+        } bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer`}
         onClick={() => setOpenDeleteMessageDialog(true)}
         disabled={deletingMessages.has(message._id)}
         title="Delete message"

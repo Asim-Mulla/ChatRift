@@ -22,6 +22,10 @@ const messageSchema = new mongoose.Schema(
         return this.messageType === "text";
       },
     },
+    edited: {
+      type: Boolean,
+      default: false,
+    },
     file: {
       type: {
         url: { type: String },
