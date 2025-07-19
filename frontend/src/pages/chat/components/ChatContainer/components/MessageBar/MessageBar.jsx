@@ -7,6 +7,7 @@ import { GrAttachment } from "react-icons/gr";
 import { IoSend } from "react-icons/io5";
 import { RiEmojiStickerLine } from "react-icons/ri";
 import { toast } from "sonner";
+import VoiceMessage from "./VoiceMessage/VoiceMessage";
 
 const MessageBar = () => {
   const socket = useSocket();
@@ -257,11 +258,11 @@ const MessageBar = () => {
   }, [emojiRef]);
 
   return (
-    <div className="min-h-[8vh] bg-[#1c1d25] flex items-center justify-center  px-4  py-4 gap-4">
-      <div className="flex-1 flex bg-[#2a2b33] rounded-md items-center  gap-3   pr-3  min-w-0">
+    <div className="min-h-[8vh] bg-[#1c1d25] flex items-center justify-center p-3 sm:p-4 gap-3 sm:gap-4">
+      <div className="flex-1 flex bg-[#2a2b33] rounded-md items-center sm:gap-3 pr-3 min-w-0">
         <input
           type="text"
-          className="flex-1  p-4 bg-transparent rounded-md focus:border-none focus:outline-none text-sm sm:text-base min-w-0"
+          className="flex-1 p-4 bg-transparent rounded-md focus:border-none focus:outline-none text-sm sm:text-base min-w-0"
           placeholder="Enter Message"
           value={message}
           onChange={handleSetMessage}
@@ -270,7 +271,7 @@ const MessageBar = () => {
         />
 
         {/* Action buttons container */}
-        <div className="flex items-center gap-3 sm:gap-5 md:gap-5 lg:gap-7 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-5 lg:gap-7 flex-shrink-0">
           <button
             className={`text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer hover:text-white p-1 sm:p-0 ${
               uploading ? "opacity-50 cursor-not-allowed" : ""
@@ -292,7 +293,7 @@ const MessageBar = () => {
 
           <div className="relative">
             <button
-              className="text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer hover:text-white p-1 sm:p-0"
+              className="flex items-center justify-center text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer hover:text-white p-1 sm:p-0"
               onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
               disabled={uploading}
             >
@@ -318,11 +319,14 @@ const MessageBar = () => {
               />
             </div>
           </div>
+
+          {/* Voice Message Button */}
+          <VoiceMessage />
         </div>
       </div>
 
       <button
-        className={`bg-[#8417ff] rounded-md flex items-center justify-center p-4  focus:border-none hover:bg-[#741bda] focus:bg-[#741bda] focus:outline-none focus:text-white duration-300 transition-all flex-shrink-0 ${
+        className={`bg-[#8417ff] rounded-md flex items-center justify-center p-4 focus:border-none hover:bg-[#741bda] focus:bg-[#741bda] focus:outline-none focus:text-white duration-300 transition-all flex-shrink-0 ${
           uploading || !message.trim() ? "opacity-50 cursor-not-allowed" : ""
         }`}
         onClick={handleSendMessage}
