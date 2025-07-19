@@ -30,6 +30,8 @@ import { GoVerified } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { RiVideoFill } from "react-icons/ri";
 import EditMessage from "./EditMessage/EditMessage";
+import { FaMicrophone } from "react-icons/fa";
+import WebmAudioPlayer from "./WebmAudioPlayer/WebmAudioPlayer";
 
 const MessageContainer = () => {
   const scrollRef = useRef();
@@ -211,6 +213,8 @@ const MessageContainer = () => {
       return <IoIosMusicalNotes className="text-purple-500" />;
     } else if (extension === "mp4") {
       return <RiVideoFill className="text-purple-500" />;
+    } else if (extension === "webm") {
+      return <FaMicrophone className="text-green-500" />;
     } else {
       return <MdDescription className="text-gray-500" />;
     }
@@ -495,7 +499,7 @@ const MessageContainer = () => {
               </div>
             ) : (
               <div className="text-start min-w-0 w-full">
-                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
                       {getFileIcon(
@@ -534,6 +538,9 @@ const MessageContainer = () => {
                       <MdDownload className="text-white" />
                     )}
                   </button>
+                  {message.file.fileName.endsWith(".webm") && (
+                    <WebmAudioPlayer file={message.file} />
+                  )}
                 </div>
               </div>
             )}
@@ -703,7 +710,7 @@ const MessageContainer = () => {
               </div>
             ) : (
               <div className="text-start min-w-0 w-full">
-                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
                       {getFileIcon(
@@ -742,6 +749,9 @@ const MessageContainer = () => {
                       <MdDownload className="text-white" />
                     )}
                   </button>
+                  {message.file.fileName.endsWith(".webm") && (
+                    <WebmAudioPlayer file={message.file} />
+                  )}
                 </div>
               </div>
             )}

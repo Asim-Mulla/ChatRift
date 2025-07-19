@@ -46,6 +46,7 @@ const upload = multer({
       "application/octet-stream",
       // Audio files
       "audio/mpeg",
+      "audio/webm",
       "video/mp4",
     ];
 

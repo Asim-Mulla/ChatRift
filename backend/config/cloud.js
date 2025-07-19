@@ -41,6 +41,7 @@ const getFileFormat = (file) => {
     svg: "svg",
     mp3: "mp3",
     mp4: "mp4",
+    webm: "webm",
   };
 
   return formatMap[extension] || extension;

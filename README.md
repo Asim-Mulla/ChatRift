@@ -329,7 +329,7 @@ npm run dev
 - [x] Google OAuth for authentication
 - [x] Read receipts (message seen status)
 - [x] Message editing
-- [ ] Voice messages
+- [x] Voice messages
 - [ ] Message reactions
 - [ ] Message forwarding
 - [ ] Group/Individual voice/video calls
