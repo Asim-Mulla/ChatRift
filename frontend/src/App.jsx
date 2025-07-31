@@ -10,6 +10,7 @@ import { useAppStore } from "./store/store";
 import { useEffect, useState } from "react";
 import { getUserData } from "./services/authServices";
 import Loading from "./pages/loading/Loading";
+import CallProvider from "./components/ui/calling/CallProvider/CallProvider";
 
 const PrivateRoute = ({ children }) => {
   const { userInfo } = useAppStore();
@@ -24,7 +25,7 @@ const AuthRoute = ({ children }) => {
 };
 
 const App = () => {
-  const { userInfo, setUserInfo } = useAppStore();
+  const { userInfo, setUserInfo, setUserNotifications } = useAppStore();
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = async () => {
@@ -32,6 +33,7 @@ const App = () => {
       const res = await getUserData();
       if (res.status === 200 && res.data.user) {
         setUserInfo(res.data.user);
+        setUserNotifications(res.data.user.notifications);
       } else {
         setUserInfo(null);
       }
@@ -90,7 +92,11 @@ const App = () => {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <CallProvider>
+      <RouterProvider router={router} />
+    </CallProvider>
+  );
 };
 
 export default App;

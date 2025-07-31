@@ -10,12 +10,21 @@ const setupSocket = (server) => {
   });
 
   const userSocketMap = {};
+  const socketIdToEmailMap = {};
+  const callTimeouts = {};
+  const inCall = {};
 
   const disconnect = (socket) => {
     for (const userId in userSocketMap) {
       if (userSocketMap[userId] === socket.id) {
         delete userSocketMap[userId];
         socket.broadcast.emit("onlineContacts", Object.keys(userSocketMap));
+        break;
+      }
+    }
+    for (const socketId in socketIdToEmailMap) {
+      if (socketIdToEmailMap[socket] === socket.id) {
+        delete socketIdToEmailMap[socketId];
         break;
       }
     }
@@ -332,11 +341,286 @@ const setupSocket = (server) => {
     }
   };
 
+  // Call handlers
+  const handleInitiateCall = async (callData) => {
+    try {
+      const receiverSocketId = userSocketMap[callData.receiverId];
+      const callerSocketId = userSocketMap[callData.callerId];
+
+      const callMessage = new Message({
+        sender: callData.callerId,
+        receiver: callData.receiverId,
+        isCall: true,
+        messageType:
+          callData.callType === "voice" ? "voice-call" : "video-call",
+        accepted: false,
+      });
+
+      const missedCall = await callMessage.save();
+      const messageData = await Message.findById(missedCall._id)
+        .populate(
+          "sender",
+          "id email firstName lastName image color verified notifications"
+        )
+        .populate(
+          "receiver",
+          "id email firstName lastName image color verified notifications"
+        );
+
+      if (receiverSocketId) {
+        // If receiver already in a call
+        if (inCall[callData.receiverId]) {
+          if (callerSocketId) {
+            io.to(callerSocketId).emit("callBusy", callData);
+            io.to(callerSocketId).emit("receiveMessage", messageData);
+          }
+          if (receiverSocketId) {
+            io.to(receiverSocketId).emit("receiveMessage", messageData);
+          }
+
+          // Add notification for receiver
+          const receiver = await User.findById(callData.receiverId);
+
+          const existingNotification = receiver.notifications.find(
+            (notifier) => notifier.user === callData.callerId
+          );
+
+          if (existingNotification) {
+            existingNotification.count += 1;
+          } else {
+            receiver.notifications.push({
+              user: callData.callerId,
+              count: 1,
+            });
+          }
+
+          await receiver.save();
+
+          return;
+        }
+
+        const callId = `call_${callData.callerId}_${
+          callData.receiverId
+        }_${Date.now()}`;
+        inCall[callData.callerId] = callId;
+        inCall[callData.receiverId] = callId;
+
+        // Send incoming call to receiver
+        io.to(receiverSocketId).emit("incomingCall", {
+          ...callData,
+          callId,
+        });
+
+        // Set timeout for call (15 seconds)
+        callTimeouts[callId] = setTimeout(async () => {
+          try {
+            if (callerSocketId) {
+              io.to(callerSocketId).emit("callTimeout", {
+                callId,
+                channelName: callData.channelName,
+              });
+              io.to(callerSocketId).emit("receiveMessage", messageData);
+            }
+            if (receiverSocketId) {
+              io.to(receiverSocketId).emit("callTimeout", {
+                callId,
+                channelName: callData.channelName,
+              });
+              io.to(receiverSocketId).emit("receiveMessage", messageData);
+            }
+            // Add notification for receiver
+            const receiver = await User.findById(callData.receiverId);
+
+            const existingNotification = receiver.notifications.find(
+              (notifier) => notifier.user === callData.callerId
+            );
+
+            if (existingNotification) {
+              existingNotification.count += 1;
+            } else {
+              receiver.notifications.push({
+                user: callData.callerId,
+                count: 1,
+              });
+            }
+
+            await receiver.save();
+
+            clearCallState(callId);
+          } catch (error) {
+            console.log("Error while timeout call", error);
+          }
+        }, 15000);
+      } else {
+        // Receiver is offline
+        if (callerSocketId) {
+          io.to(callerSocketId).emit("userOffline", {
+            userId: callData.receiverId,
+          });
+          io.to(callerSocketId).emit("receiveMessage", messageData);
+        }
+        // Add notification for receiver
+        const receiver = await User.findById(callData.receiverId);
+
+        const existingNotification = receiver.notifications.find(
+          (notifier) => notifier.user === callData.callerId
+        );
+
+        if (existingNotification) {
+          existingNotification.count += 1;
+        } else {
+          receiver.notifications.push({
+            user: callData.callerId,
+            count: 1,
+          });
+        }
+
+        await receiver.save();
+      }
+    } catch (error) {
+      console.log("Error while initiating call", error);
+    }
+  };
+
+  const clearCallState = (callId) => {
+    Object.keys(inCall).forEach((userId) => {
+      if (inCall[userId] === callId) {
+        delete inCall[userId];
+      }
+    });
+    if (callTimeouts[callId]) {
+      clearTimeout(callTimeouts[callId]);
+      delete callTimeouts[callId];
+    }
+  };
+
+  const clearCallTimeout = (callId) => {
+    if (callTimeouts[callId]) {
+      clearTimeout(callTimeouts[callId]);
+      delete callTimeouts[callId];
+    }
+  };
+
+  const handleAcceptCall = (data) => {
+    const callerSocketId = userSocketMap[data.callerId];
+    clearCallTimeout(data.callId);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit("callAccepted", data);
+    }
+  };
+
+  const handleDeclineCall = async (data) => {
+    try {
+      const callerSocketId = userSocketMap[data.callerId];
+      const receiverSocketId = userSocketMap[data.declinerId];
+      clearCallState(data.callId);
+      const callMessage = new Message({
+        sender: data.callerId,
+        receiver: data.declinerId,
+        isCall: true,
+        messageType: data.callType === "voice" ? "voice-call" : "video-call",
+        accepted: false,
+      });
+      const missedCall = await callMessage.save();
+      const messageData = await Message.findById(missedCall._id)
+        .populate(
+          "sender",
+          "id email firstName lastName image color verified notifications"
+        )
+        .populate(
+          "receiver",
+          "id email firstName lastName image color verified notifications"
+        );
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("callDeclined", data);
+        io.to(callerSocketId).emit("receiveMessage", messageData);
+      }
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receiveMessage", messageData);
+      }
+    } catch (error) {
+      console.log("Error while declining call", error);
+    }
+  };
+
+  const handleEndCall = async (data) => {
+    try {
+      clearCallState(inCall[data.userId] || "");
+      const remoteSocketId = userSocketMap[data.remoteUserId];
+      const callerSocketId = userSocketMap[data.caller];
+      const receiverSocketId =
+        userSocketMap[data.isInitiator ? data.remoteUserId : data.userId];
+
+      const callMessage = new Message({
+        sender: data.caller,
+        receiver: data.isInitiator ? data.remoteUserId : data.userId,
+        isCall: true,
+        messageType: data.callType === "voice" ? "voice-call" : "video-call",
+        accepted: data.wasAccepted,
+        callDuration: data.duration,
+      });
+      const missedCall = await callMessage.save();
+      const messageData = await Message.findById(missedCall._id)
+        .populate(
+          "sender",
+          "id email firstName lastName image color verified notifications"
+        )
+        .populate(
+          "receiver",
+          "id email firstName lastName image color verified notifications"
+        );
+
+      if (remoteSocketId) {
+        io.to(remoteSocketId).emit("callEnded", data);
+      }
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("receiveMessage", messageData);
+      }
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receiveMessage", messageData);
+      }
+
+      // Add notification for receiver if the call was not accepted
+      if (!data.wasAccepted) {
+        const receiver = await User.findById(
+          data.isInitiator ? data.remoteUserId : data.userId
+        );
+
+        const existingNotification = receiver.notifications.find(
+          (notifier) => notifier.user === data.caller
+        );
+
+        if (existingNotification) {
+          existingNotification.count += 1;
+        } else {
+          receiver.notifications.push({
+            user: data.caller,
+            count: 1,
+          });
+        }
+
+        await receiver.save();
+      }
+    } catch (error) {
+      console.log("Error while ending call", error);
+    }
+  };
+
+  const handleCallBusy = (data) => {
+    const callerSocketId = userSocketMap[data.callerId];
+    if (callerSocketId) {
+      io.to(callerSocketId).emit("callBusy", data);
+    }
+  };
+
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
+    const userEmail = socket.handshake.query.email;
 
     if (userId) {
       userSocketMap[userId] = socket.id;
+      socketIdToEmailMap[socket.id] = userEmail;
+
       socket.emit("onlineContacts", Object.keys(userSocketMap));
       socket.broadcast.emit("onlineContacts", Object.keys(userSocketMap));
     } else {
@@ -356,6 +640,14 @@ const setupSocket = (server) => {
     socket.on("deleteGroupMessage", handleDeleteGroupMessage);
     socket.on("leftGroup", handleLeaveGroup);
     socket.on("groupDeleted", handleDeleteGroup);
+
+    // Call events
+    socket.on("initiateCall", handleInitiateCall);
+    socket.on("acceptCall", handleAcceptCall);
+    socket.on("declineCall", handleDeclineCall);
+    socket.on("endCall", handleEndCall);
+    socket.on("callBusy", handleCallBusy);
+
     socket.on("disconnect", () => disconnect(socket));
   });
 };

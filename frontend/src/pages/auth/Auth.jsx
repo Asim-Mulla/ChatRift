@@ -22,7 +22,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { setUserInfo } = useAppStore();
+  const { setUserInfo, setUserNotifications } = useAppStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -92,6 +92,7 @@ const Auth = () => {
           const user = res.data.user;
           if (user?.id) {
             setUserInfo(user);
+            setUserNotifications(user.notifications);
             if (user.profileSetup) {
               navigate("/chat");
             } else {
@@ -152,6 +153,7 @@ const Auth = () => {
         success: (res) => {
           if (res.status === 201) {
             setUserInfo(res.data.user);
+            setUserNotifications(res.data.user.notifications);
             navigate("/profile");
             // Reset form
             setEmail("");
@@ -193,6 +195,7 @@ const Auth = () => {
           success: (res) => {
             if (res.status === 200 || res.status === 201) {
               setUserInfo(res.data.user);
+              setUserNotifications(res.data.user.notifications);
               return "Logged in successfully!";
             } else {
               throw new Error("Unexpected response");

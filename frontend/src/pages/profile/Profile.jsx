@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { userInfo, setUserInfo } = useAppStore();
+  const { userInfo, setUserInfo, setUserNotifications } = useAppStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [image, setImage] = useState({});
@@ -107,6 +107,7 @@ const Profile = () => {
         const res = await updateProfile(firstName, lastName, selectedColor);
         if (res.status == 200 && res.data.user) {
           setUserInfo(res.data.user);
+          setUserNotifications(res.data.user.notifications);
           toast.success("Profile info updated successfully");
           navigate("/chat");
         }

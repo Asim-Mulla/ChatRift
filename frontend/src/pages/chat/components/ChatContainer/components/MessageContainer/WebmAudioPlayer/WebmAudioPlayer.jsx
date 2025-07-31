@@ -19,7 +19,6 @@ const WebmAudioPlayer = ({ file }) => {
           setDuration(audio.duration);
           audio.removeEventListener("timeupdate", fixDuration);
           audio.currentTime = 0;
-          console.log("Duration:", audio.duration);
         };
         audio.addEventListener("timeupdate", fixDuration);
       } else {

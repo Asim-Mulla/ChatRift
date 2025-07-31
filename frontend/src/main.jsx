@@ -9,7 +9,7 @@ createRoot(document.getElementById("root")).render(
   <SocketProvider>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <App clasaName="App" />
-      <Toaster closeButton position="top-center" />
+      <Toaster closeButton position="top-center" expand visibleToasts={3} />
     </GoogleOAuthProvider>
   </SocketProvider>
 );

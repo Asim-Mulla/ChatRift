@@ -11,10 +11,25 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    isCall: {
+      type: Boolean,
+      default: false,
+    },
     messageType: {
       type: String,
-      enum: ["text", "file"],
+      enum: ["text", "file", "voice-call", "video-call"],
       required: true,
+    },
+    accepted: {
+      type: Boolean,
+      default: false,
+    },
+    callDuration: {
+      type: Number,
+      min: 0,
+      required: function () {
+        return this.accepted === true;
+      },
     },
     content: {
       type: String,

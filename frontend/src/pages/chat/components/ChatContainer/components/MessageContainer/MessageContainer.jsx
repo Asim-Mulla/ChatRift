@@ -3,7 +3,8 @@ import { getColor } from "@/lib/utils";
 import { getGroupMessages } from "@/services/groupServices";
 import { getMessages } from "@/services/messageServices";
 import { useAppStore } from "@/store/store";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { VscCallIncoming, VscCallOutgoing } from "react-icons/vsc";
 import {
   MdDownload,
   MdFolderZip,
@@ -28,17 +29,67 @@ import {
 } from "@/components/ui/alert-dialog";
 import { GoVerified } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
-import { RiVideoFill } from "react-icons/ri";
+import {
+  RiVideoDownloadLine,
+  RiVideoFill,
+  RiVideoUploadLine,
+} from "react-icons/ri";
 import EditMessage from "./EditMessage/EditMessage";
 import { FaMicrophone } from "react-icons/fa";
 import WebmAudioPlayer from "./WebmAudioPlayer/WebmAudioPlayer";
 
+// Helper function to handle blob download
+const downloadBlob = (blob, fileName) => {
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = fileName;
+  a.style.display = "none";
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // Clean up
+  window.URL.revokeObjectURL(downloadUrl);
+};
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return "";
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+};
+
+const getFileIcon = (fileName, fileType) => {
+  const extension = fileName?.split(".").pop()?.toLowerCase();
+
+  if (
+    fileType?.startsWith("image/") ||
+    ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension)
+  ) {
+    return <MdPictureAsPdf className="text-blue-500" />;
+  } else if (extension === "pdf" || fileType === "application/pdf") {
+    return <MdPictureAsPdf className="text-red-500" />;
+  } else if (["zip", "rar", "7z"].includes(extension)) {
+    return <MdFolderZip className="text-yellow-500" />;
+  } else if (extension === "mp3") {
+    return <IoIosMusicalNotes className="text-purple-500" />;
+  } else if (extension === "mp4") {
+    return <RiVideoFill className="text-purple-500" />;
+  } else if (extension === "webm") {
+    return <FaMicrophone className="text-green-500" />;
+  } else {
+    return <MdDescription className="text-gray-500" />;
+  }
+};
+
+const checkIfImage = (filePath) => {
+  const imageRegex = /\.(jpg|jpeg|png|gif|webp|svg)$/i;
+  return imageRegex.test(filePath);
+};
+
 const MessageContainer = () => {
-  const scrollRef = useRef();
-  const unreadMessageRef = useRef();
-  const containerRef = useRef();
-  const hasResetRef = useRef(false);
-  const [downloadingFiles, setDownloadingFiles] = useState(new Set());
   const {
     notifications,
     setNotifications,
@@ -51,6 +102,11 @@ const MessageContainer = () => {
     userInfo,
     receiverUnreadCount,
   } = useAppStore();
+  const scrollRef = useRef();
+  const unreadMessageRef = useRef();
+  const containerRef = useRef();
+  const hasResetRef = useRef(false);
+  const [downloadingFiles, setDownloadingFiles] = useState(new Set());
   const [showImage, setShowImage] = useState(false);
   const [dm, setDm] = useState();
   const [openDMDialog, setOpenDMDialog] = useState(false);
@@ -58,25 +114,17 @@ const MessageContainer = () => {
     url: "",
     fileName: "",
   });
-  const [currentlyEditingId, setCurrentlyEditingId] = useState(null);
 
-  const fetctMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
-      const res = await getMessages(selectedChatData._id);
+      const res = await (selectedChatType === "Group"
+        ? getGroupMessages(selectedChatData._id)
+        : getMessages(selectedChatData._id));
       setSelectedChatMessages(res.data.messages);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.error(err);
     }
-  };
-
-  const fetchGroupMessages = async (groupId) => {
-    try {
-      const res = await getGroupMessages(groupId);
-      setSelectedChatMessages(res.data.messages);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  }, [selectedChatType, selectedChatData, setSelectedChatMessages]);
 
   const handleDM = async () => {
     try {
@@ -87,7 +135,7 @@ const MessageContainer = () => {
             setSelectedChatType("Contact");
             setSelectedChatData(res.data.user);
 
-            return "DM ready!";
+            return "Ready to DM!";
           } else {
             throw new Error("Unexpected response");
           }
@@ -104,12 +152,10 @@ const MessageContainer = () => {
   };
 
   useEffect(() => {
-    if (selectedChatData?._id && selectedChatType === "Contact") {
-      fetctMessages();
-    } else if (selectedChatData?._id && selectedChatType === "Group") {
-      fetchGroupMessages(selectedChatData?._id);
+    if (selectedChatData?._id) {
+      fetchMessages();
     }
-  }, [selectedChatData, selectedChatType]);
+  }, [fetchMessages, selectedChatData]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -118,114 +164,45 @@ const MessageContainer = () => {
           behavior: "smooth",
           block: "center",
         });
-
-        return;
-      }
-      if (scrollRef.current) {
+      } else if (scrollRef.current) {
         scrollRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }, 500);
-
-    return () => {
-      clearTimeout(timeout);
-    };
+    return () => clearTimeout(timeout);
   }, [selectedChatMessages]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-    if (!notifications) {
-      return;
-    }
-
-    const cannotScroll = container.scrollHeight === container.clientHeight;
+    if (!container || !notifications) return;
 
     const handleScroll = () => {
       const isAtBottom =
         container.scrollHeight - container.scrollTop <=
         container.clientHeight + 5;
 
-      if (
-        (isAtBottom && notifications > 0 && !hasResetRef.current) ||
-        cannotScroll
-      ) {
+      if (isAtBottom && notifications > 0 && !hasResetRef.current) {
         hasResetRef.current = true;
-        setTimeout(() => {
-          setNotifications(0);
-        }, 3000);
+        setTimeout(() => setNotifications(0), 3000);
       }
     };
 
-    if (cannotScroll) {
-      handleScroll();
-    }
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, [notifications, setNotifications]);
 
-  const dontNotify = async () => {
-    const latestMessage =
-      selectedChatMessages?.[selectedChatMessages?.length - 1];
-
-    if (selectedChatType === "Contact" && latestMessage) {
-      if (userInfo?.id === latestMessage?.receiver) {
-        try {
-          const res = await removeNotification(latestMessage?.sender);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
-
-    if (selectedChatType === "Group" && latestMessage) {
-      try {
-        const res = await removeNotification(selectedChatData?._id);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
   useEffect(() => {
-    dontNotify();
-  }, [selectedChatMessages]);
+    const latestMessage = selectedChatMessages?.at(-1);
+    if (!latestMessage) return;
 
-  const checkIfImage = (filePath) => {
-    const imageRegex = /\.(jpg|jpeg|png|gif|webp|svg)$/i;
-    return imageRegex.test(filePath);
-  };
+    const shouldNotifyRemoval =
+      (selectedChatType === "Contact" &&
+        userInfo?.id === latestMessage.receiver) ||
+      selectedChatType === "Group";
 
-  const getFileIcon = (fileName, fileType) => {
-    const extension = fileName?.split(".").pop()?.toLowerCase();
-
-    if (
-      fileType?.startsWith("image/") ||
-      ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension)
-    ) {
-      return <MdPictureAsPdf className="text-blue-500" />;
-    } else if (extension === "pdf" || fileType === "application/pdf") {
-      return <MdPictureAsPdf className="text-red-500" />;
-    } else if (["zip", "rar", "7z"].includes(extension)) {
-      return <MdFolderZip className="text-yellow-500" />;
-    } else if (extension === "mp3") {
-      return <IoIosMusicalNotes className="text-purple-500" />;
-    } else if (extension === "mp4") {
-      return <RiVideoFill className="text-purple-500" />;
-    } else if (extension === "webm") {
-      return <FaMicrophone className="text-green-500" />;
-    } else {
-      return <MdDescription className="text-gray-500" />;
+    if (shouldNotifyRemoval) {
+      removeNotification(selectedChatData?._id).catch(console.error);
     }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "";
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
-  };
+  }, [selectedChatMessages]);
 
   const handleFileDownload = async (file) => {
     if (!file?.url || !file?.fileName) {
@@ -233,7 +210,7 @@ const MessageContainer = () => {
       return;
     }
 
-    const fileId = file.url.trim(); // normalize
+    const fileId = file.url.trim();
 
     if (downloadingFiles.has(fileId)) {
       return;
@@ -249,18 +226,15 @@ const MessageContainer = () => {
       // Primary attempt
       const response = await fetch(file.url);
       if (!response.ok) throw new Error("Primary download failed");
-
       const blob = await response.blob();
       downloadBlob(blob, file.fileName);
       setImage({});
       setShowImage(false);
-      toast.success(`Downloaded ${file.fileName}`);
     } catch (error) {
+      // cloudinary specific attempt
       console.warn("Primary download failed:", error.message);
-
       try {
         console.log("Trying Cloudinary-specific logic for download");
-        // Fallback logic
         let downloadUrl = file.url;
 
         if (
@@ -291,35 +265,17 @@ const MessageContainer = () => {
 
         const blob = await fallbackResponse.blob();
         downloadBlob(blob, file.fileName);
-        toast.success(`Downloaded ${file.fileName}`);
       } catch (finalError) {
         console.error("Fallback download failed:", finalError);
         toast.error("File download failed. Please try again later.");
       }
     } finally {
-      // ✅ This will now always run
       setDownloadingFiles((prev) => {
         const newSet = new Set(prev);
         newSet.delete(fileId);
         return newSet;
       });
     }
-  };
-
-  // Helper function to handle blob download
-  const downloadBlob = (blob, fileName) => {
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = downloadUrl;
-    a.download = fileName;
-    a.style.display = "none";
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // Clean up
-    window.URL.revokeObjectURL(downloadUrl);
   };
 
   const renderNotification = () => {
@@ -560,6 +516,67 @@ const MessageContainer = () => {
               ) : null}
             </div>
             {canDelete && <DeleteMessageDialog message={message} />}
+          </div>
+        )}
+        {!message?.deleted && message?.isCall && (
+          <div>
+            <div
+              className={`${
+                isOwnMessage
+                  ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
+                  : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
+              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+            >
+              <div className="flex items-center justify-between gap-3 pr-15">
+                <div
+                  className={`${
+                    !isOwnMessage && !message?.accepted
+                      ? "bg-red-400"
+                      : "border border-purple-500"
+                  }  rounded-full text-lg p-3`}
+                >
+                  {isOwnMessage && message.messageType === "voice-call" ? (
+                    <VscCallOutgoing />
+                  ) : !isOwnMessage && message.messageType === "voice-call" ? (
+                    <VscCallIncoming />
+                  ) : isOwnMessage && message.messageType === "video-call" ? (
+                    <RiVideoUploadLine />
+                  ) : !isOwnMessage && message.messageType === "video-call" ? (
+                    <RiVideoDownloadLine />
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-start font-bold">
+                    {message.messageType === "voice-call"
+                      ? "Voice call"
+                      : "Video call"}
+                  </span>
+                  <span className="text-start">
+                    {message.accepted
+                      ? `${
+                          message.callDuration >= 60
+                            ? `${Math.floor(
+                                message.callDuration / 60
+                              )} min ${String(
+                                message.callDuration % 60
+                              ).padStart(2, "0")} sec`
+                            : `${message.callDuration} sec`
+                        }`
+                      : !message.accepted && isOwnMessage
+                      ? "No answer"
+                      : !message.accepted && !isOwnMessage
+                      ? "Missed"
+                      : null}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
+                {new Date(message.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>

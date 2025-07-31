@@ -13,7 +13,8 @@ const ContactList = ({
 }) => {
   const {
     userInfo,
-    setUserInfo,
+    userNotifications,
+    setUserNotifications,
     setNotifications,
     selectedChatData,
     setSelectedChatData,
@@ -26,14 +27,9 @@ const ContactList = ({
   const socket = useSocket();
 
   const handleSelectContact = async (contact) => {
-    if (isGroup) {
-      setSelectedChatType("Group");
-    } else {
-      setSelectedChatType("Contact");
-    }
-
+    setSelectedChatType(isGroup ? "Group" : "Contact");
     const notifications =
-      userInfo?.notifications?.find((notifier) => notifier.user === contact._id)
+      userNotifications?.find((notifier) => notifier.user === contact._id)
         ?.count || 0;
 
     if (!isGroup) {
@@ -53,7 +49,7 @@ const ContactList = ({
 
     setNotifications(notifications);
 
-    const updatedNotifications = userInfo.notifications.filter(
+    const updatedNotifications = userNotifications.filter(
       (notifier) => notifier.user !== contact._id
     );
 
@@ -67,8 +63,7 @@ const ContactList = ({
         });
       }
     }
-
-    setUserInfo({ ...userInfo, notifications: updatedNotifications });
+    setUserNotifications(updatedNotifications);
 
     if (selectedChatData && selectedChatData._id !== contact._id) {
       setSelectedChatMessages([]);
@@ -96,7 +91,7 @@ const ContactList = ({
   return (
     <div className="mt-5">
       {contacts?.map((contact) => {
-        const notification = userInfo?.notifications?.find(
+        const notification = userNotifications?.find(
           (notifi) => notifi.user === contact._id
         );
 

@@ -2,27 +2,29 @@
 
 <https://chatrift.onrender.com>
 
-A modern, feature-rich real-time chat application built with the MERN stack, Socket.IO, and Zustand for seamless communication.
+A modern, feature-rich real-time chat application with voice and video calling, built with the MERN stack, Socket.IO, Agora RTC, and Zustand for seamless communication.
 
 ## 🛠 Built With
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs)
-![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb)
-![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio)
-![Zustand](https://img.shields.io/badge/Zustand-FF6B6B?style=for-the-badge&logo=zustand)
+![React Router](https://img.shields.io/badge/React--Router-Dom-C0002B?style=for-the-badge&logo=reactrouter&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-000000?style=for-the-badge&logo=zustand&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite)
+![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb)
+![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs)
+![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio)
+![Agora RTC](https://img.shields.io/badge/Agora-RTC-009FCC?style=for-the-badge&logo=agora&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens)
 ![Google OAuth](https://img.shields.io/badge/Google-OAuth2-4285F4?style=for-the-badge&logo=google)
 
-**ChatRift** is a comprehensive real-time chat application that enables users to communicate through direct messages and group chats. Built with modern web technologies, it offers a seamless messaging experience with file sharing, emoji support, typing indicators, and robust user management features.
+**ChatRift** is a comprehensive real-time chat application that enables users to communicate through direct messages and group chats, and one-to-one voice and video calls. Built with modern web technologies, it offers a seamless messaging and calling experience with file sharing, emoji support, typing indicators, and robust user management features.
 
 ## Project Overview
 
-ChatRift provides a complete messaging platform with user authentication, contact management, real-time messaging, file sharing capabilities, and group chat functionality. The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.
+ChatRift provides a complete communication platform with user authentication, contact management, real-time messaging, voice/video calling, file sharing capabilities, and group chat functionality. The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.
 
 ## UI Previews
 
@@ -37,6 +39,10 @@ ChatRift provides a complete messaging platform with user authentication, contac
 | New Group                                                                                                                                                                                         | Group Chat                                                                                                                                                                                      | Group Edit                                                                                                                                                                                         |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [![Group Creation](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/07-new-group_ehgnnb.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/07-new-group_ehgnnb.png) | [![Group Chat](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/08-group-chat_u9826a.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/08-group-chat_u9826a.png) | [![Group Editing](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/09-edit-group_djq7lb.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1752397864/09-edit-group_djq7lb.png) |
+
+| Incoming Call Modal                                                                                                                                                                                      | Voice Call Interface                                                                                                                                                                                              | Video Call Interface                                                                                                                                                                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Incoming Call](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/10-incoming-call_omrtla.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/10-incoming-call_omrtla.png) | [![Voice Call](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/11-accepted-voice-call_ufla2n.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/11-accepted-voice-call_ufla2n.png) | [![Video Call](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/12-accepted-video-call_ujrsdp.png)](https://res.cloudinary.com/dpgu4conz/image/upload/v1753954849/12-accepted-video-call_ujrsdp.png) |
 
 ## Features
 
@@ -119,6 +125,30 @@ ChatRift provides a complete messaging platform with user authentication, contac
    - Smooth animations and transitions
    - Intuitive navigation
 
+### Voice & Video Calling
+
+1. **One-to-One Voice Calls**
+
+   - Initiate or receive voice calls with contacts.
+   - Real-time ringing, call timer, mute/unmute functionality.
+
+2. **One-to-One Video Calls**
+
+   - High-quality video calling with the ability to toggle the camera on/off.
+   - Picture-in-picture local video preview.
+
+3. **Call Notifications**
+
+   - Incoming call modal with user details.
+   - Missed call notifications if the call is not answered.
+
+4. **Robust Call State Management**
+   - Busy signals if user is already in a call.
+   - Call timeout after 15 seconds if not accepted.
+   - Missed and ended call messages saved in chat.
+
+> Built using **Socket.IO** for signaling and **Agora RTC SDK** for real-time media streaming.
+
 ## Tech Stack
 
 ### Frontend
@@ -134,6 +164,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 - **HTTP Client**: Axios
 - **Emoji Support**: emoji-picker-react
 - **Notifications**: Sonner
+- **Voice/Video SDK**: Agora rtc sdk ng
 
 ### Backend
 
@@ -146,6 +177,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 - **Validation**: Validator.js
 - **Security**: CORS, Cookie Parser
 - **Environment**: dotenv
+- **RTC Token Generation**: Agora Access Token
 
 ## Installation and Setup
 
@@ -155,6 +187,7 @@ ChatRift provides a complete messaging platform with user authentication, contac
 - MongoDB Atlas account or local MongoDB installation
 - Cloudinary account for file storage
 - Google cloud console
+- Agora account (for Voice & Video Calling)
 
 ### Frontend Setup
 
@@ -176,6 +209,8 @@ npm install
 ```bash
 VITE_SERVER_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=your_google_client_id # you can get from cloud console
+VITE_AGORA_APP_ID=your_agora_project_app_id
+VITE_NODE_ENV=development
 ```
 
 4. Start the development server
@@ -221,6 +256,10 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # Otp verification for regular authentication
 EMAIL=your_email
 EMAIL_PASSWORD=your_emails_app_password
+
+# Voice and video call
+AGORA_APP_ID=your_agora_app_id
+AGORA_APP_CERTIFICATE=your_agora_app_certificate
 ```
 
 4. Start the server
@@ -268,6 +307,10 @@ npm run dev
 - `PATCH /api/group/exit-group` - Exit group
 - `DELETE /api/group/delete` - Delete group (Group admin only)
 
+### Call
+
+- `POST /api/agora/generate-token` - Get agora access token for call initiation
+
 ## Socket Events
 
 ### Client to Server
@@ -285,6 +328,11 @@ npm run dev
 - `deleteGroupMessage` - Deletes group message instantly
 - `leftGroup` - Notifies when member leaves group
 - `groupDeleted` - Prevents all members from sending messages when admin deletes group
+- `initiateCall` - Start a call with a user
+- `acceptCall` - Accept a call
+- `declineCall` - Decline a call
+- `endCall` - End the call
+- `callBusy` - Notify caller if user is already in another call
 - `disconnect` - Removes online status indicator
 
 ### Server to Client
@@ -301,6 +349,13 @@ npm run dev
 - `removedFromGroup` - Notifies member of removal by admin (prevents further messaging)
 - `leftGroup` - Notifies remaining members when someone leaves
 - `groupDeleted` - Notifies all members when admin deletes group (prevents further messaging)
+- `incomingCall` - Notify user of an incoming call
+- `callAccepted` - Accept a call
+- `callDeclined` - Decline a call
+- `callEnded` - End the call
+- `callBusy` - Notify caller if user is already in another call
+- `callTimeout` - Notify caller and receiver if call timed out
+- `userOffline` - Notify receiver about missed call and caller about receiver is offline
 
 ## Security Features
 
@@ -322,17 +377,17 @@ npm run dev
 
 ## Future Enhancements
 
-- [x] Typing indicator for group and dm
-- [x] Unread messages for group and dm
-- [x] Datestamp for messages
-- [x] OTP verification for regular authentication
-- [x] Google OAuth for authentication
-- [x] Read receipts (message seen status)
-- [x] Message editing
-- [x] Voice messages
-- [ ] Message reactions
-- [ ] Message forwarding
-- [ ] Group/Individual voice/video calls
+- ✅ Typing indicator for group and dm
+- ✅ Unread messages for group and dm
+- ✅ Datestamp for messages
+- ✅ OTP verification for regular authentication
+- ✅ Google OAuth for authentication
+- ✅ Read receipts (message seen status)
+- ✅ Message editing
+- ✅ Voice messages
+- ✅ One-to-one voice and video calls
+- ⬜️ Message reactions
+- ⬜️ Message forwarding
 
 ## Author
 
@@ -345,6 +400,7 @@ npm run dev
 
 - React team for the amazing framework
 - Socket.IO team for real-time communication
+- Agora for the powerful real-time voice and video calling SDK
 - Google OAuth for seamless authentication and authorization
 - shadcn/ui for beautiful UI components
 - Tailwind CSS for utility-first styling

@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
     if (userInfo) {
       socket.current = io(import.meta.env.VITE_SERVER_URL, {
         withCredentials: true,
-        query: { userId: userInfo.id },
+        query: { userId: userInfo.id, email: userInfo.email },
       });
 
       const handleDmOnlineContacts = (onlineContacts) => {
@@ -26,56 +26,89 @@ export const SocketProvider = ({ children }) => {
       };
 
       const handleReceiveMessage = async (message) => {
-        const { userInfo, setUserInfo } = useAppStore.getState();
         const {
           selectedChatData,
+          userNotifications,
           selectedChatType,
+          setUserNotifications,
           addMessage,
           bringContactToTop,
         } = useAppStore.getState();
 
-        if (
-          selectedChatType === "Contact" &&
-          (selectedChatData._id === message.sender._id ||
-            selectedChatData._id === message.receiver._id)
-        ) {
-          addMessage(message);
-        } else {
-          const notificationsExists = userInfo.notifications.find(
-            (notifier) => notifier.user === message.sender._id
-          );
-
-          let updatedNotifications = null;
-
-          if (notificationsExists) {
-            if (notificationsExists.count === 0) {
-              toast.info(
-                `New message from ${message.sender.firstName} ${message.sender.lastName}`
-              );
-            }
-            updatedNotifications = userInfo.notifications.map((notifier) => {
-              if (notifier.user === message.sender._id) {
-                return { ...notifier, count: notifier.count + 1 };
-              } else {
-                return { ...notifier };
-              }
-            });
+        if (message.isCall) {
+          // Call message
+          if (
+            selectedChatType === "Contact" &&
+            (selectedChatData._id === message.sender._id ||
+              selectedChatData._id === message.receiver._id)
+          ) {
+            addMessage(message);
           } else {
-            updatedNotifications = [
-              ...userInfo.notifications,
-              { user: message.sender._id, count: 1 },
-            ];
+            if (!message.accepted && message.receiver._id === userInfo.id) {
+              const notificationsExists = userNotifications.find(
+                (notifier) => notifier.user === message.sender._id
+              );
+
+              let updatedNotifications = null;
+              if (notificationsExists) {
+                updatedNotifications = userNotifications?.map((notifier) => {
+                  if (notifier.user === message.sender._id) {
+                    return { ...notifier, count: notifier.count + 1 };
+                  } else {
+                    return { ...notifier };
+                  }
+                });
+              } else {
+                updatedNotifications = [
+                  ...userNotifications,
+                  { user: message.sender._id, count: 1 },
+                ];
+              }
+
+              setUserNotifications(updatedNotifications);
+              if (message.receiver._id === userInfo.id) {
+                toast.info(
+                  `Missed call from ${message.sender.firstName} ${message.sender.lastName}`
+                );
+              }
+            }
+          }
+        } else {
+          // Non call message
+          if (
+            selectedChatType === "Contact" &&
+            (selectedChatData._id === message.sender._id ||
+              selectedChatData._id === message.receiver._id)
+          ) {
+            addMessage(message);
+          } else {
+            const notificationsExists = userNotifications.find(
+              (notifier) => notifier.user === message.sender._id
+            );
+
+            let updatedNotifications = null;
+            if (notificationsExists) {
+              updatedNotifications = userNotifications.map((notifier) => {
+                if (notifier.user === message.sender._id) {
+                  return { ...notifier, count: notifier.count + 1 };
+                } else {
+                  return { ...notifier };
+                }
+              });
+            } else {
+              updatedNotifications = [
+                ...userNotifications,
+                { user: message.sender._id, count: 1 },
+              ];
+            }
+            setUserNotifications(updatedNotifications);
             toast.info(
               `New message from ${message.sender.firstName} ${message.sender.lastName}`
             );
           }
-
-          setUserInfo({
-            ...userInfo,
-            notifications: updatedNotifications,
-          });
         }
 
+        // Emit message read only if this user is receiver and chat is open
         if (
           selectedChatType === "Contact" &&
           userInfo.id === message.receiver._id &&
@@ -163,8 +196,8 @@ export const SocketProvider = ({ children }) => {
           selectedChatType,
           addMessage,
           bringGroupToTop,
-          userInfo,
-          setUserInfo,
+          userNotifications,
+          setUserNotifications,
         } = useAppStore.getState();
 
         if (
@@ -173,7 +206,7 @@ export const SocketProvider = ({ children }) => {
         ) {
           addMessage(message);
         } else {
-          const notificationsExists = userInfo.notifications.find(
+          const notificationsExists = userNotifications.find(
             (notifier) => notifier.user === message.groupId
           );
 
@@ -183,7 +216,7 @@ export const SocketProvider = ({ children }) => {
             if (notificationsExists.count === 0) {
               toast.info(`New message in group ${message.groupName}`);
             }
-            updatedNotifications = userInfo.notifications.map((notifier) => {
+            updatedNotifications = userNotifications.map((notifier) => {
               if (notifier.user === message.groupId) {
                 return { ...notifier, count: notifier.count + 1 };
               } else {
@@ -192,13 +225,13 @@ export const SocketProvider = ({ children }) => {
             });
           } else {
             updatedNotifications = [
-              ...userInfo.notifications,
+              ...userNotifications,
               { user: message.groupId, count: 1 },
             ];
             toast.info(`New message in group ${message.groupName}`);
           }
 
-          setUserInfo({ ...userInfo, notifications: updatedNotifications });
+          setUserNotifications(updatedNotifications);
         }
 
         bringGroupToTop(message);

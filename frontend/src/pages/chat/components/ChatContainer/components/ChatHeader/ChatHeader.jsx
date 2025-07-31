@@ -7,6 +7,7 @@ import EditGroupModel from "../EditGroupModel/EditGroupModel";
 import ExitGroupModel from "../ExitGroupModel/ExitGroupModel";
 import { FaArrowLeft } from "react-icons/fa";
 import { GoVerified } from "react-icons/go";
+import CallButtons from "../../../../../../components/ui/calling/CallButtons/CallButtons";
 
 const ChatHeader = () => {
   const socket = useSocket();
@@ -190,6 +191,7 @@ const ChatHeader = () => {
       </div>
 
       <div className="flex items-center justify-center gap-5 flex-shrink-0">
+        {selectedChatType === "Contact" && <CallButtons />}
         {selectedChatType === "Group" &&
         selectedChatData?.admin === userInfo?.id ? (
           <EditGroupModel />
