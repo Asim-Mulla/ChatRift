@@ -84,7 +84,15 @@ const setupSocket = (server) => {
       .populate(
         "receiver",
         "id email firstName lastName image color verified notifications"
-      );
+      )
+      .populate({
+        path: "reply.to",
+        populate: {
+          path: "sender receiver",
+          select:
+            "id email firstName lastName image color verified notifications",
+        },
+      });
 
     // Emit to sender
     if (senderSocketId) {
@@ -163,6 +171,14 @@ const setupSocket = (server) => {
 
     const messageData = await Message.findById(newMessage._id)
       .populate("sender", "id email firstName lastName image color")
+      .populate({
+        path: "reply.to",
+        populate: {
+          path: "sender",
+          select:
+            "id email firstName lastName image color verified notifications",
+        },
+      })
       .exec();
 
     // adding message in the group's messages array

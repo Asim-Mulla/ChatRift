@@ -76,6 +76,7 @@ ChatRift provides a complete communication platform with user authentication, co
    - Message history persistence
    - Typing indicators
    - File sharing capabilities
+   - Reply to messages
 
 2. **Message Control**
    - Sender can delete their own messages
@@ -385,9 +386,8 @@ npm run dev
 - ✅ Read receipts (message seen status)
 - ✅ Message editing
 - ✅ Voice messages
+- ✅ Message reply
 - ✅ One-to-one voice and video calls
-- ⬜️ Message reactions
-- ⬜️ Message forwarding
 
 ## Author
 

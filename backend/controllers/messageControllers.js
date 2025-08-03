@@ -16,7 +16,16 @@ export const getMessages = async (req, res) => {
         { sender: currentUserId, receiver: otherUserId },
         { sender: otherUserId, receiver: currentUserId },
       ],
-    }).sort({ createdAt: 1 });
+    })
+      .sort({ createdAt: 1 })
+      .populate({
+        path: "reply.to",
+        populate: {
+          path: "sender receiver",
+          select:
+            "id email firstName lastName image color verified notifications",
+        },
+      });
 
     return res.status(200).json({ messages });
   } catch (error) {

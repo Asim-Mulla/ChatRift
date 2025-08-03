@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { GoVerified } from "react-icons/go";
-import { IoCheckmarkDoneSharp } from "react-icons/io5";
+import { IoCheckmarkDoneSharp, IoImageOutline } from "react-icons/io5";
 import {
   RiVideoDownloadLine,
   RiVideoFill,
@@ -37,6 +37,8 @@ import {
 import EditMessage from "./EditMessage/EditMessage";
 import { FaMicrophone } from "react-icons/fa";
 import WebmAudioPlayer from "./WebmAudioPlayer/WebmAudioPlayer";
+import ReplyMessage from "./ReplyMessageDialog/ReplyMessageDialog";
+import { entries } from "lodash";
 
 // Helper function to handle blob download
 const downloadBlob = (blob, fileName) => {
@@ -278,6 +280,31 @@ const MessageContainer = () => {
     }
   };
 
+  const handleScrollToMessage = (messageId) => {
+    if (!messageId) {
+      return;
+    }
+
+    const message = document.getElementById(messageId);
+    if (message) {
+      message.scrollIntoView({ behavior: "smooth", block: "center" });
+      const observer = new IntersectionObserver(
+        (entries, obs) => {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+            message.classList.add("blink-highlight");
+            setTimeout(() => {
+              message.classList.remove("blink-highlight");
+            }, 1500);
+            obs.disconnect();
+          }
+        },
+        { threshold: 0.6 }
+      );
+      observer.observe(message);
+    }
+  };
+
   const renderNotification = () => {
     return (
       <div
@@ -365,12 +392,17 @@ const MessageContainer = () => {
       message?.sender === messagesInGroup[messageIndex - 1]?.sender;
     const canDelete = isOwnMessage;
     const canEdit = isOwnMessage;
+    const canReply =
+      !message?.deleted &&
+      message.messageType !== "voice-call" &&
+      message.messageType !== "video-call";
 
     return (
       <div
-        className={`${isOwnMessage ? "text-right" : "text-left"} group ${
-          againSameSender ? "mt-1" : "mt-3"
-        }`}
+        id={message._id}
+        className={`rounded ${
+          isOwnMessage ? "text-right" : "text-left"
+        } group ${againSameSender ? "mt-1" : "mt-3"}`}
       >
         {message?.deleted && (
           <div
@@ -393,7 +425,7 @@ const MessageContainer = () => {
           </div>
         )}
         {!message?.deleted && message?.messageType === "text" && (
-          <div className="">
+          <div>
             <div
               className={`${
                 isOwnMessage
@@ -401,9 +433,57 @@ const MessageContainer = () => {
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
               } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
             >
-              {message?.content}
+              <div className="flex flex-col">
+                {message?.reply?.isReply && (
+                  <div
+                    onClick={() =>
+                      handleScrollToMessage(message?.reply?.to?._id)
+                    }
+                    className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start p-2 rounded border-s-3 mb-1 pb-3 cursor-pointer ${
+                      isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
+                    }`}
+                  >
+                    <div
+                      className={`flex flex-col ${
+                        checkIfImage(message?.reply?.to?.file?.url)
+                          ? "justify-center"
+                          : "justify-start"
+                      }`}
+                    >
+                      <span className={`font-semibold text-xs`}>
+                        {message?.reply?.to?.sender?._id === userInfo.id
+                          ? "You"
+                          : `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`}
+                      </span>
+                      <span className="text-sm">
+                        {message?.reply?.to?.messageType === "text" ? (
+                          message?.reply?.to?.content
+                        ) : checkIfImage(message?.reply?.to?.file?.url) ? (
+                          <div className="flex items-center">
+                            <IoImageOutline className="mr-1" />
+                            <span>Image</span>
+                          </div>
+                        ) : (
+                          message?.reply?.to?.file?.fileName
+                        )}
+                      </span>
+                    </div>
+                    {checkIfImage(message?.reply?.to?.file?.url) ? (
+                      <div className="h-[40px] w-[60px] rounded overflow-hidden">
+                        <img
+                          src={message?.reply?.to?.file?.url}
+                          alt={message?.reply?.to?.file?.fileName}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+                <span className="text-start">{message?.content}</span>
+              </div>
               {canDelete && <DeleteMessageDialog message={message} />}
               {canEdit && <EditMessage message={message} />}
+              {canReply && <ReplyMessage message={message} />}
               <div className="flex items-center justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
                 {message.edited && <span>Edited</span>}
                 {new Date(message.createdAt).toLocaleTimeString([], {
@@ -432,73 +512,81 @@ const MessageContainer = () => {
             } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] `}
           >
             {checkIfImage(message?.file?.url) ? (
-              <div
-                className="cursor-pointer"
-                onClick={() => {
-                  setShowImage(true);
-                  setImage(message?.file);
-                }}
-              >
-                <img
-                  src={message?.file?.url || "/placeholder.svg"}
-                  alt={message?.file?.fileName}
-                  className="max-w-full h-auto max-h-50 sm:max-h-64 md:max-h-80 rounded"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "block";
+              <>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setShowImage(true);
+                    setImage(message?.file);
                   }}
-                />
-                <div style={{ display: "none" }} className="text-center p-4">
-                  <MdDescription className="text-4xl mx-auto mb-2" />
-                  <p className="text-sm">Image failed to load</p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-start min-w-0 w-full">
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
-                      {getFileIcon(
-                        message?.file?.fileName,
-                        message?.file?.fileType
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-xs sm:text-sm break-all">
-                        {message?.file?.fileName}
-                      </div>
-                      {message?.file?.size && (
-                        <div className="text-xs opacity-80">
-                          {formatFileSize(message?.file?.size)}
-                        </div>
-                      )}
-                    </div>
+                >
+                  <img
+                    src={message?.file?.url || "/placeholder.svg"}
+                    alt={message?.file?.fileName}
+                    className="max-w-full h-auto max-h-50 sm:max-h-64 md:max-h-80 rounded"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "block";
+                    }}
+                  />
+                  <div style={{ display: "none" }} className="text-center p-4">
+                    <MdDescription className="text-4xl mx-auto mb-2" />
+                    <p className="text-sm">Image failed to load</p>
                   </div>
-                  <button
-                    className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
-                      downloadingFiles.has(message?.file?.url?.trim())
-                        ? "bg-gray-500 cursor-not-allowed"
-                        : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
-                    }`}
-                    onClick={() => handleFileDownload(message?.file)}
-                    disabled={downloadingFiles.has(message?.file?.url?.trim())}
-                    title={
-                      downloadingFiles.has(message?.file?.url?.trim())
-                        ? "Downloading..."
-                        : "Download file"
-                    }
-                  >
-                    {downloadingFiles.has(message?.file?.url?.trim()) ? (
-                      <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                    ) : (
-                      <MdDownload className="text-white" />
-                    )}
-                  </button>
-                  {message.file.fileName.endsWith(".webm") && (
-                    <WebmAudioPlayer file={message.file} />
-                  )}
                 </div>
-              </div>
+                {canReply && <ReplyMessage message={message} />}
+              </>
+            ) : (
+              <>
+                <div className="text-start min-w-0 w-full">
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
+                        {getFileIcon(
+                          message?.file?.fileName,
+                          message?.file?.fileType
+                        )}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs sm:text-sm break-all">
+                          {message?.file?.fileName}
+                        </div>
+                        {message?.file?.size && (
+                          <div className="text-xs opacity-80">
+                            {formatFileSize(message?.file?.size)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
+                        downloadingFiles.has(message?.file?.url?.trim())
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
+                      }`}
+                      onClick={() => handleFileDownload(message?.file)}
+                      disabled={downloadingFiles.has(
+                        message?.file?.url?.trim()
+                      )}
+                      title={
+                        downloadingFiles.has(message?.file?.url?.trim())
+                          ? "Downloading..."
+                          : "Download file"
+                      }
+                    >
+                      {downloadingFiles.has(message?.file?.url?.trim()) ? (
+                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                      ) : (
+                        <MdDownload className="text-white" />
+                      )}
+                    </button>
+                    {message.file.fileName.endsWith(".webm") && (
+                      <WebmAudioPlayer file={message.file} />
+                    )}
+                  </div>
+                </div>
+                {canReply && <ReplyMessage message={message} />}
+              </>
             )}
             <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500 mt-1 text-right">
               {new Date(message.createdAt).toLocaleTimeString([], {
@@ -527,13 +615,17 @@ const MessageContainer = () => {
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
               } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
             >
-              <div className="flex items-center justify-between gap-3 pr-15">
+              <div
+                className={`flex items-center justify-between gap-3 p-2.5 pl-3 border-t pr-20 rounded-sm ${
+                  isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
+                }`}
+              >
                 <div
                   className={`${
                     !isOwnMessage && !message?.accepted
                       ? "bg-red-400"
                       : "border border-purple-500"
-                  }  rounded-full text-lg p-3`}
+                  }  rounded-full text-md p-3`}
                 >
                   {isOwnMessage && message.messageType === "voice-call" ? (
                     <VscCallOutgoing />
@@ -546,12 +638,12 @@ const MessageContainer = () => {
                   ) : null}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-start font-bold">
+                  <span className="text-start font-semibold text-sm">
                     {message.messageType === "voice-call"
                       ? "Voice call"
                       : "Video call"}
                   </span>
-                  <span className="text-start">
+                  <span className="text-start font-light text-sm">
                     {message.accepted
                       ? `${
                           message.callDuration >= 60
@@ -591,12 +683,14 @@ const MessageContainer = () => {
     const isAdmin = selectedChatData.admin === userInfo.id;
     const canDelete = isOwnMessage || isAdmin;
     const canEdit = isOwnMessage;
+    const canReply = !message.deleted;
 
     return (
       <div
-        className={`${isOwnMessage ? "text-right" : "text-left"} group ${
-          againSameSender ? "mt-1" : "mt-3"
-        }`}
+        id={message._id}
+        className={`rounded ${
+          isOwnMessage ? "text-right" : "text-left"
+        } group ${againSameSender ? "mt-1" : "mt-3"}`}
       >
         {!isOwnMessage && !againSameSender && (
           <div
@@ -674,7 +768,7 @@ const MessageContainer = () => {
           </div>
         )}
         {!message?.deleted && message?.messageType === "text" && (
-          <div className="">
+          <div>
             <div
               className={`${
                 isOwnMessage
@@ -682,9 +776,57 @@ const MessageContainer = () => {
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
               } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
             >
-              {message?.content}
+              <div className="flex flex-col">
+                {message?.reply?.isReply && (
+                  <div
+                    onClick={() =>
+                      handleScrollToMessage(message?.reply?.to?._id)
+                    }
+                    className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start py-2 px-3 rounded border-s-3 mb-1 cursor-pointer ${
+                      isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
+                    }`}
+                  >
+                    <div
+                      className={`flex flex-col  ${
+                        checkIfImage(message?.reply?.to?.file?.url)
+                          ? "justify-center"
+                          : "justify-start"
+                      }`}
+                    >
+                      <span className={`font-semibold text-xs`}>
+                        {message?.reply?.to?.sender?._id === userInfo.id
+                          ? "You"
+                          : `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`}
+                      </span>
+                      <span className="text-sm">
+                        {message?.reply?.to?.messageType === "text" ? (
+                          message?.reply?.to?.content
+                        ) : checkIfImage(message?.reply?.to?.file?.url) ? (
+                          <div className="flex items-center">
+                            <IoImageOutline className="mr-1" />
+                            <span>Image</span>
+                          </div>
+                        ) : (
+                          message?.reply?.to?.file?.fileName
+                        )}
+                      </span>
+                    </div>
+                    {checkIfImage(message?.reply?.to?.file?.url) ? (
+                      <div className="h-[40px] w-[60px] rounded overflow-hidden">
+                        <img
+                          src={message?.reply?.to?.file?.url}
+                          alt={message?.reply?.to?.file?.fileName}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+                <span className="text-start">{message?.content}</span>
+              </div>
               {canDelete && <DeleteMessageDialog message={message} />}
               {canEdit && <EditMessage message={message} />}
+              {canReply && <ReplyMessage message={message} />}
               <div className="flex justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
                 {message.edited && <span>Edited</span>}
                 {new Date(message.createdAt).toLocaleTimeString([], {
@@ -704,73 +846,81 @@ const MessageContainer = () => {
             } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words`}
           >
             {checkIfImage(message?.file?.url) ? (
-              <div
-                className="cursor-pointer"
-                onClick={() => {
-                  setShowImage(true);
-                  setImage(message?.file);
-                }}
-              >
-                <img
-                  src={message?.file?.url || "/placeholder.svg"}
-                  alt={message?.file?.fileName}
-                  className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded break-words"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "block";
+              <>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setShowImage(true);
+                    setImage(message?.file);
                   }}
-                />
-                <div style={{ display: "none" }} className="text-center p-4">
-                  <MdDescription className="text-4xl mx-auto mb-2" />
-                  <p className="text-sm">Image failed to load</p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-start min-w-0 w-full">
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
-                      {getFileIcon(
-                        message?.file?.fileName,
-                        message?.file?.fileType
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-xs sm:text-sm break-all">
-                        {message?.file?.fileName}
-                      </div>
-                      {message?.file?.size && (
-                        <div className="text-xs opacity-80">
-                          {formatFileSize(message?.file?.size)}
-                        </div>
-                      )}
-                    </div>
+                >
+                  <img
+                    src={message?.file?.url || "/placeholder.svg"}
+                    alt={message?.file?.fileName}
+                    className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded break-words"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "block";
+                    }}
+                  />
+                  <div style={{ display: "none" }} className="text-center p-4">
+                    <MdDescription className="text-4xl mx-auto mb-2" />
+                    <p className="text-sm">Image failed to load</p>
                   </div>
-                  <button
-                    className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
-                      downloadingFiles.has(message?.file?.url?.trim())
-                        ? "bg-gray-500 cursor-not-allowed"
-                        : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
-                    }`}
-                    onClick={() => handleFileDownload(message?.file)}
-                    disabled={downloadingFiles.has(message?.file?.url?.trim())}
-                    title={
-                      downloadingFiles.has(message?.file?.url?.trim())
-                        ? "Downloading..."
-                        : "Download file"
-                    }
-                  >
-                    {downloadingFiles.has(message?.file?.url?.trim()) ? (
-                      <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                    ) : (
-                      <MdDownload className="text-white" />
-                    )}
-                  </button>
-                  {message.file.fileName.endsWith(".webm") && (
-                    <WebmAudioPlayer file={message.file} />
-                  )}
                 </div>
-              </div>
+                {canReply && <ReplyMessage message={message} />}
+              </>
+            ) : (
+              <>
+                <div className="text-start min-w-0 w-full">
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
+                        {getFileIcon(
+                          message?.file?.fileName,
+                          message?.file?.fileType
+                        )}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs sm:text-sm break-all">
+                          {message?.file?.fileName}
+                        </div>
+                        {message?.file?.size && (
+                          <div className="text-xs opacity-80">
+                            {formatFileSize(message?.file?.size)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
+                        downloadingFiles.has(message?.file?.url?.trim())
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
+                      }`}
+                      onClick={() => handleFileDownload(message?.file)}
+                      disabled={downloadingFiles.has(
+                        message?.file?.url?.trim()
+                      )}
+                      title={
+                        downloadingFiles.has(message?.file?.url?.trim())
+                          ? "Downloading..."
+                          : "Download file"
+                      }
+                    >
+                      {downloadingFiles.has(message?.file?.url?.trim()) ? (
+                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                      ) : (
+                        <MdDownload className="text-white" />
+                      )}
+                    </button>
+                    {message.file.fileName.endsWith(".webm") && (
+                      <WebmAudioPlayer file={message.file} />
+                    )}
+                  </div>
+                </div>
+                {canReply && <ReplyMessage message={message} />}
+              </>
             )}
             {canDelete && <DeleteMessageDialog message={message} />}
             <div className="text-xs text-gray-500 mt-1 text-right">

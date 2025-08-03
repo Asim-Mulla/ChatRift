@@ -157,3 +157,17 @@
 .fade-in-out {
   animation: fade-in-out 2s ease-in-out infinite;
 }
+
+.blink-highlight {
+  animation: blink-bg 1.5s ease;
+}
+
+@keyframes blink-bg {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(132, 23, 255, 0.4); /* Purple highlight */
+  }
+}

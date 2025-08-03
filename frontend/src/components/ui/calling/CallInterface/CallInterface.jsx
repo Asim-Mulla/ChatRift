@@ -528,14 +528,17 @@ const CallInterface = () => {
           )}
 
           {/* Speaker Button (voice calls only) */}
-          {callState.callType === "voice" && (
+          {/* {callState.callType
+           === "voice" && (
             <button
               disabled={!isConnected}
-              className="p-4 rounded-full bg-gray-600 hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
+              className={`p-4 rounded-full ${
+                isSpeakerOn ? "bg-purple-700" : "bg-gray-600"
+              } hover:bg-purple-800 transition-colors duration-200 disabled:opacity-50`}
             >
               <Volume2 className="w-6 h-6 text-white" />
             </button>
-          )}
+          )} */}
 
           {/* End Call Button */}
           <button

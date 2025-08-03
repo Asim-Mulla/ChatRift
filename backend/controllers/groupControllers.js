@@ -75,10 +75,19 @@ export const getGroupMessages = async (req, res) => {
 
     const group = await Group.findById(groupId).populate({
       path: "messages",
-      populate: {
-        path: "sender",
-        select: "email firstName lastName image color verified _id",
-      },
+      populate: [
+        {
+          path: "sender",
+          select: "email firstName lastName image color verified _id",
+        },
+        {
+          path: "reply.to",
+          populate: {
+            path: "sender",
+            select: "email firstName lastName image color verified _id",
+          },
+        },
+      ],
     });
 
     if (!group) {

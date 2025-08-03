@@ -92,7 +92,7 @@ const DeleteMessageDialog = ({ message }) => {
   return (
     <div>
       <button
-        className={`absolute -top-2 ${
+        className={`absolute -bottom-2 ${
           isOwnMessage ? "-left-2" : "-right-2"
         } bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer`}
         onClick={() => setOpenDeleteMessageDialog(true)}

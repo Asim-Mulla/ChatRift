@@ -145,7 +145,7 @@ const EditMessage = ({ message }) => {
   return (
     <div>
       <button
-        className={`absolute -bottom-2 ${
+        className={`absolute -top-2 ${
           isOwnMessage ? "-left-2" : "-right-2"
         } bg-[#8417ff] hover:bg-[#741bda] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer`}
         onClick={handleOpenEdit}

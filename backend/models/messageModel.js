@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
@@ -50,6 +50,15 @@ const messageSchema = new mongoose.Schema(
       },
       required: function () {
         return this.messageType === "file";
+      },
+    },
+    reply: {
+      type: {
+        isReply: Boolean,
+        to: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Message",
+        },
       },
     },
   },
