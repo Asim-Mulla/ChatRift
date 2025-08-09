@@ -1,10 +1,8 @@
 import admin from "firebase-admin";
-import fs from "fs";
+import "dotenv/config";
 
 // Read and parse the service account JSON file
-const serviceAccount = JSON.parse(
-  fs.readFileSync("./config/firebase-service-account.json", "utf8")
-);
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
