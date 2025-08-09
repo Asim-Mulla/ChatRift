@@ -3,6 +3,7 @@ import "dotenv/config";
 import Message from "../models/messageModel.js";
 import Group from "../models/groupModel.js";
 import User from "../models/userModel.js";
+import { sendPushNotification } from "../utils/sendPushNotification.js";
 
 const setupSocket = (server) => {
   const io = new SocketIOServer(server, {
@@ -100,13 +101,15 @@ const setupSocket = (server) => {
     }
 
     // Emit to receiver if online
+    const receiver = await User.findById(message.receiver);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("receiveMessage", messageData);
     }
+    if (receiver?.fcmToken) {
+      await sendPushNotification(receiver.fcmToken, messageData);
+    }
 
     // Add notification for receiver
-    const receiver = await User.findById(message.receiver);
-
     const existingNotification = receiver.notifications.find(
       (notifier) => notifier.user === message.sender
     );
@@ -198,13 +201,16 @@ const setupSocket = (server) => {
     if (group && group.members) {
       group.members.forEach(async (member) => {
         const memberSocketId = userSocketMap[member._id.toString()];
+        const receiver = await User.findById(member._id);
+
         if (memberSocketId) {
           io.to(memberSocketId).emit("receiveGroupMessage", groupMessage);
         }
+        if (receiver?.fcmToken) {
+          await sendPushNotification(receiver.fcmToken, messageData);
+        }
 
         // notification
-        const receiver = await User.findById(member._id);
-
         const existingNotification = receiver.notifications.find(
           (notifier) => notifier.user === groupId
         );
@@ -219,13 +225,16 @@ const setupSocket = (server) => {
       });
 
       const adminSocketId = userSocketMap[group.admin._id.toString()];
+      const admin = await User.findById(group.admin._id);
+
       if (adminSocketId) {
         io.to(adminSocketId).emit("receiveGroupMessage", groupMessage);
       }
+      if (admin?.fcmToken) {
+        await sendPushNotification(receiver.fcmToken, messageData);
+      }
 
       // notification
-      const admin = await User.findById(group.admin._id);
-
       const existingNotification = admin.notifications.find(
         (notifier) => notifier.user === groupId
       );
@@ -383,6 +392,7 @@ const setupSocket = (server) => {
           "id email firstName lastName image color verified notifications"
         );
 
+      const receiver = await User.findById(callData.receiverId);
       if (receiverSocketId) {
         // If receiver already in a call
         if (inCall[callData.receiverId]) {
@@ -395,8 +405,6 @@ const setupSocket = (server) => {
           }
 
           // Add notification for receiver
-          const receiver = await User.findById(callData.receiverId);
-
           const existingNotification = receiver.notifications.find(
             (notifier) => notifier.user === callData.callerId
           );
@@ -426,6 +434,14 @@ const setupSocket = (server) => {
           ...callData,
           callId,
         });
+        if (receiver?.fcmToken) {
+          const incomingCall = true;
+          await sendPushNotification(
+            receiver.fcmToken,
+            messageData,
+            incomingCall
+          );
+        }
 
         // Set timeout for call (15 seconds)
         callTimeouts[callId] = setTimeout(async () => {
@@ -461,6 +477,9 @@ const setupSocket = (server) => {
             }
 
             await receiver.save();
+            if (receiver?.fcmToken) {
+              await sendPushNotification(receiver.fcmToken, messageData);
+            }
 
             clearCallState(callId);
           } catch (error) {
@@ -492,6 +511,10 @@ const setupSocket = (server) => {
         }
 
         await receiver.save();
+
+        if (receiver?.fcmToken) {
+          await sendPushNotification(receiver.fcmToken, messageData);
+        }
       }
     } catch (error) {
       console.log("Error while initiating call", error);
@@ -616,6 +639,9 @@ const setupSocket = (server) => {
         }
 
         await receiver.save();
+        if (receiver?.fcmToken) {
+          await sendPushNotification(receiver.fcmToken, messageData);
+        }
       }
     } catch (error) {
       console.log("Error while ending call", error);

@@ -146,3 +146,27 @@ export const getUserInfo = async (req, res) => {
     return res.status(500).send("Internal server error");
   }
 };
+
+export const saveFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const { userId } = req;
+
+    if (!token) {
+      return res.status(400).send("Token not found!");
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).send("User not found!");
+    }
+
+    user.fcmToken = token;
+    await user.save();
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    return res.status(500).send("Internal server error");
+  }
+};

@@ -6,6 +6,7 @@ import EmptyChatContainer from "./components/EmptyChatContainer/EmptyChatContain
 import ChatConatiner from "./components/ChatContainer/ChatConatiner";
 import "../../index.css";
 import ContactsContainer from "./components/ContactsContainer/ContactsContainer";
+import { requestFirebaseNotificationPermission } from "@/firebase/requestPermission";
 
 const Chat = () => {
   const { userInfo, selectedChatType } = useAppStore();
@@ -17,6 +18,15 @@ const Chat = () => {
       navigate("/profile");
     }
   }, [userInfo, navigate]);
+
+  useEffect(() => {
+    if (userInfo) {
+      requestFirebaseNotificationPermission();
+      const onFocus = () => requestFirebaseNotificationPermission();
+      window.addEventListener("focus", onFocus);
+      return () => window.removeEventListener("focus", onFocus);
+    }
+  }, [userInfo]);
 
   useEffect(() => {
     const setViewportHeight = () => {

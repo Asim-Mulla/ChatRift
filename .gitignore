@@ -4,6 +4,9 @@
 # Ignore all .env files
 **/.env
 
+# Ignore firebase-service-account.json
+/backend/config/firebase-service-account.json
+
 # Ignore logs
 *.log
 

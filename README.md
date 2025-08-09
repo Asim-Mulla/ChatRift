@@ -2,7 +2,7 @@
 
 <https://chatrift.onrender.com>
 
-A modern, feature-rich real-time chat application with voice and video calling, built with the MERN stack, Socket.IO, Agora RTC, and Zustand for seamless communication.
+A modern, feature-rich real-time chat application with voice and video calling, built with the MERN stack, Socket.IO, Agora RTC, Firebase Cloud Messaging (FCM) for web push notifications and Zustand for seamless communication.
 
 ## 🛠 Built With
 
@@ -19,12 +19,13 @@ A modern, feature-rich real-time chat application with voice and video calling, 
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens)
 ![Google OAuth](https://img.shields.io/badge/Google-OAuth2-4285F4?style=for-the-badge&logo=google)
+![Firebase](https://img.shields.io/badge/Firebase_Messaging-FFCA28?style=for-the-badge&logo=firebase)
 
 **ChatRift** is a comprehensive real-time chat application that enables users to communicate through direct messages and group chats, and one-to-one voice and video calls. Built with modern web technologies, it offers a seamless messaging and calling experience with file sharing, emoji support, typing indicators, and robust user management features.
 
 ## Project Overview
 
-ChatRift provides a complete communication platform with user authentication, contact management, real-time messaging, voice/video calling, file sharing capabilities, and group chat functionality. The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.
+ChatRift provides a complete communication platform with user authentication, contact management, real-time messaging, voice/video calling, file sharing capabilities, and group chat functionality. The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.Push notifications are implemented using Firebase Cloud Messaging and Firebase Admin SDK, allowing users to receive instant alerts for new messages, missed calls, and incoming calls even when the app is closed or running in the background.
 
 ## UI Previews
 
@@ -121,10 +122,20 @@ ChatRift provides a complete communication platform with user authentication, co
    - Profile color themes
 
 3. **Modern UI/UX**
+
    - Clean, dark-themed interface
    - Responsive design for all devices
    - Smooth animations and transitions
    - Intuitive navigation
+
+4. **Push Notifications**
+   - Real-time browser push notifications for:
+     - New direct messages (DM)
+     - New group messages
+     - Incoming calls (voice/video)
+     - Missed calls
+   - Works even when the chat application is closed or inactive
+   - Built with Firebase Cloud Messaging and Firebase Admin SDK
 
 ### Voice & Video Calling
 
@@ -166,6 +177,7 @@ ChatRift provides a complete communication platform with user authentication, co
 - **Emoji Support**: emoji-picker-react
 - **Notifications**: Sonner
 - **Voice/Video SDK**: Agora rtc sdk ng
+- **Push Notifications**: Firebase Cloud Messaging (Web)
 
 ### Backend
 
@@ -179,6 +191,7 @@ ChatRift provides a complete communication platform with user authentication, co
 - **Security**: CORS, Cookie Parser
 - **Environment**: dotenv
 - **RTC Token Generation**: Agora Access Token
+- **Push Notifications**: Firebase Admin SDK
 
 ## Installation and Setup
 
@@ -209,9 +222,22 @@ npm install
 
 ```bash
 VITE_SERVER_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=your_google_client_id # you can get from cloud console
-VITE_AGORA_APP_ID=your_agora_project_app_id
 VITE_NODE_ENV=development
+
+# Google OAuth Authentication
+VITE_GOOGLE_CLIENT_ID=your_google_client_id # you can get from cloud console
+
+# Voice and Video calling
+VITE_AGORA_APP_ID=your_agora_project_app_id
+
+# Web Push Notifications
+VITE_VAPID_KEY=your_web_push_certificate_key
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 4. Start the development server
@@ -290,6 +316,7 @@ npm run dev
 - `GET /api/user/get-users-for-group` - Get all users except current user for creating group
 - `POST /api/user/remove-notification` - Messages viewed
 - `GET /api/user/get-user-info/:userId` - Get user info for DM from group
+- `POST /api/user/save-fcm-token` - Save the Firebase Cloud Messaging token for the current user to enable push notifications.
 
 ### Messages
 
@@ -388,6 +415,7 @@ npm run dev
 - ✅ Voice messages
 - ✅ Message reply
 - ✅ One-to-one voice and video calls
+- ✅ Web push notifications
 
 ## Author
 
@@ -405,6 +433,7 @@ npm run dev
 - shadcn/ui for beautiful UI components
 - Tailwind CSS for utility-first styling
 - Zustand for simple state management
+- Firebase team for Firebase Cloud Messaging & Admin SDK
 - All open-source contributors
 
 ## Support
