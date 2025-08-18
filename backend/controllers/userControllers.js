@@ -107,16 +107,22 @@ export const removeNotification = async (req, res) => {
       return res.status(400).send("Notifier id not found!");
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const notifierStr = notifier.toString();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { notifications: { user: notifierStr } } },
+      { new: true } // return updated doc
+    );
+
+    if (!updatedUser) {
       return res.status(404).send("User not found!");
     }
 
-    user.notifications = user.notifications.filter((n) => n.user !== notifier);
-
-    const savedUser = await user.save();
-
-    res.status(200).json({ success: true, notifications: user.notifications });
+    res.status(200).json({
+      success: true,
+      notifications: updatedUser.notifications,
+    });
   } catch (error) {
     console.error("Error removing notification:", error);
     res.status(500).send("Internal Server Error");

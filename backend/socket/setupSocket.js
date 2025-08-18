@@ -109,21 +109,18 @@ const setupSocket = (server) => {
       await sendPushNotification(receiver.fcmToken, messageData);
     }
 
-    // Add notification for receiver
-    const existingNotification = receiver.notifications.find(
-      (notifier) => notifier.user === message.sender
+    const senderIdStr = message.sender.toString();
+    const result = await User.updateOne(
+      { _id: message.receiver, "notifications.user": senderIdStr },
+      { $inc: { "notifications.$.count": 1 } }
     );
 
-    if (existingNotification) {
-      existingNotification.count += 1;
-    } else {
-      receiver.notifications.push({
-        user: message.sender,
-        count: 1,
-      });
+    if (result.matchedCount === 0) {
+      await User.updateOne(
+        { _id: message.receiver },
+        { $push: { notifications: { user: senderIdStr, count: 1 } } }
+      );
     }
-
-    await receiver.save();
   };
 
   const handleMessageRead = ({ to, notifier }) => {
@@ -197,9 +194,10 @@ const setupSocket = (server) => {
       groupName: group.name,
     };
 
-    // sending message to all online members and to admin
+    const groupIdStr = group._id.toString();
+
     if (group && group.members) {
-      group.members.forEach(async (member) => {
+      for (const member of group.members) {
         const memberSocketId = userSocketMap[member._id.toString()];
         const receiver = await User.findById(member._id);
 
@@ -210,20 +208,20 @@ const setupSocket = (server) => {
           await sendPushNotification(receiver.fcmToken, messageData);
         }
 
-        // notification
-        const existingNotification = receiver.notifications.find(
-          (notifier) => notifier.user === groupId
+        const res = await User.updateOne(
+          { _id: member._id, "notifications.user": groupIdStr },
+          { $inc: { "notifications.$.count": 1 } }
         );
 
-        if (existingNotification) {
-          existingNotification.count += 1;
-        } else {
-          receiver.notifications.push({ user: groupId, count: 1 });
+        if (res.matchedCount === 0) {
+          await User.updateOne(
+            { _id: member._id },
+            { $push: { notifications: { user: groupIdStr, count: 1 } } }
+          );
         }
+      }
 
-        await receiver.save();
-      });
-
+      // Same for admin
       const adminSocketId = userSocketMap[group.admin._id.toString()];
       const admin = await User.findById(group.admin._id);
 
@@ -231,21 +229,20 @@ const setupSocket = (server) => {
         io.to(adminSocketId).emit("receiveGroupMessage", groupMessage);
       }
       if (admin?.fcmToken) {
-        await sendPushNotification(receiver.fcmToken, messageData);
+        await sendPushNotification(admin.fcmToken, messageData);
       }
 
-      // notification
-      const existingNotification = admin.notifications.find(
-        (notifier) => notifier.user === groupId
+      const res = await User.updateOne(
+        { _id: group.admin._id, "notifications.user": groupIdStr },
+        { $inc: { "notifications.$.count": 1 } }
       );
 
-      if (existingNotification) {
-        existingNotification.count += 1;
-      } else {
-        admin.notifications.push({ user: groupId, count: 1 });
+      if (res.matchedCount === 0) {
+        await User.updateOne(
+          { _id: group.admin._id },
+          { $push: { notifications: { user: groupIdStr, count: 1 } } }
+        );
       }
-
-      await admin.save();
     }
   };
 

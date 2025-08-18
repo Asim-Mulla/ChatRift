@@ -194,7 +194,9 @@ const MessageContainer = () => {
 
   useEffect(() => {
     const latestMessage = selectedChatMessages?.at(-1);
-    if (!latestMessage) return;
+    if (!latestMessage) {
+      return;
+    }
 
     const shouldNotifyRemoval =
       (selectedChatType === "Contact" &&
@@ -202,7 +204,9 @@ const MessageContainer = () => {
       selectedChatType === "Group";
 
     if (shouldNotifyRemoval) {
-      removeNotification(selectedChatData?._id).catch(console.error);
+      setTimeout(() => {
+        removeNotification(selectedChatData?._id).catch(console.error);
+      }, 1000);
     }
   }, [selectedChatMessages]);
 
@@ -453,7 +457,9 @@ const MessageContainer = () => {
                       <span className={`font-semibold text-xs`}>
                         {message?.reply?.to?.sender?._id === userInfo.id
                           ? "You"
-                          : `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`}
+                          : message?.reply?.to?.sender?.firstName
+                          ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
+                          : "this message was deleted"}
                       </span>
                       <span className="text-sm">
                         {message?.reply?.to?.messageType === "text" ? (
@@ -796,7 +802,9 @@ const MessageContainer = () => {
                       <span className={`font-semibold text-xs`}>
                         {message?.reply?.to?.sender?._id === userInfo.id
                           ? "You"
-                          : `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`}
+                          : message?.reply?.to?.sender?.firstName
+                          ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
+                          : "this message was deleted"}
                       </span>
                       <span className="text-sm">
                         {message?.reply?.to?.messageType === "text" ? (
