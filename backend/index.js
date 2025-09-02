@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import job from "./config/cron.js";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -26,9 +27,13 @@ app.use(express.json({ limit: "5mb" })); // Increase JSON limit
 app.use(express.urlencoded({ extended: true, limit: "5mb" })); // Increase URL encoded limit
 
 connectDB();
+if (process.env.NODE_ENV === "production") {
+  console.log("starting job");
+  job.start();
+}
 
-app.get("/", (req, res) => {
-  res.send("Server is listening");
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "server is running." });
 });
 
 app.use("/api/auth", authRoutes);
