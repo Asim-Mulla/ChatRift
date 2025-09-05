@@ -28,7 +28,6 @@ app.use(express.urlencoded({ extended: true, limit: "5mb" })); // Increase URL e
 
 connectDB();
 if (process.env.NODE_ENV === "production") {
-  console.log("starting job");
   job.start();
 }
 
