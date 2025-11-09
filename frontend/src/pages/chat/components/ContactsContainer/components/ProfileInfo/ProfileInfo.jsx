@@ -8,6 +8,7 @@ import { GoVerified } from "react-icons/go";
 import { MdEdit, MdOutlineLogout } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import LogoutConfirmation from "../../LogoutConfirmation/LogoutConfirmation";
 
 const ProfileInfo = () => {
   const { userInfo, setUserInfo } = useAppStore();
@@ -68,13 +69,14 @@ const ProfileInfo = () => {
       </div>
       <div className="flex gap-5">
         <MdEdit
-          className="hover:text-gray-400 text-lg cursor-pointer"
+          className="text-purple-400 hover:text-purple-600 text-lg cursor-pointer"
           onClick={() => navigate("/profile")}
         />
-        <MdOutlineLogout
+        {/* <MdOutlineLogout
           className="text-red-400 text-lg hover:text-red-400 cursor-pointer"
           onClick={handleLogout}
-        />
+        /> */}
+        <LogoutConfirmation onLogout={handleLogout} />
       </div>
     </div>
   );

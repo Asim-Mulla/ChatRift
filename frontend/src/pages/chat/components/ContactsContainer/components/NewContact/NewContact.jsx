@@ -50,7 +50,9 @@ const NewContact = () => {
       <Dialog open={openNewContactModal} onOpenChange={setOpenNewContactModal}>
         <DialogContent className="bg-[#181920] border-none text-white w-[400px] h-[400px] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Please select a contact</DialogTitle>
+            <DialogTitle className="text-center text-lg font-semibold text-white">
+              Please select a contact
+            </DialogTitle>
           </DialogHeader>
           <div>
             <Input
@@ -137,7 +139,76 @@ const NewContact = () => {
               </div>
             </ScrollArea>
           )}
-          {searchTerm?.length <= 0 && (
+          {searchTerm?.length === 0 && (
+            <div>
+              <div className="pb-2">
+                <p className="text-gray-400">Recommended for you</p>
+              </div>
+              <ScrollArea className="h-[240px]">
+                <div className="flex flex-col gap-1">
+                  {searchedContacts.slice(0, 5).map((contact) => (
+                    <div
+                      key={contact._id}
+                      className="flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-[#2a2b33]"
+                      onClick={() => handleSelectNewContact(contact)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 relative">
+                          <Avatar className="h-12 w-12  rounded-full overflow-hidden">
+                            {contact?.image?.url ? (
+                              <AvatarImage
+                                src={contact?.image?.url}
+                                alt="profile"
+                                className={
+                                  "object-cover w-full h-full bg-black"
+                                }
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div
+                                className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
+                                  contact?.color
+                                )}`}
+                              >
+                                {contact.firstName && contact.lastName
+                                  ? contact.firstName
+                                      .trim()
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                    contact.lastName
+                                      .trim()
+                                      .charAt(0)
+                                      .toUpperCase()
+                                  : contact.email.split("").shift()}
+                              </div>
+                            )}
+                          </Avatar>
+                        </div>
+                        <div className="flex flex-col">
+                          <span>
+                            {contact.firstName && contact.lastName
+                              ? `${contact.firstName} ${contact.lastName}`
+                              : ""}
+                          </span>
+                          <span>{contact.email}</span>
+                        </div>
+                        {contact.verified && (
+                          <div>
+                            <GoVerified />
+                          </div>
+                        )}
+                      </div>
+                      {DMOnlineContacts?.includes(contact?._id) && (
+                        <span className="h-2 w-2 rounded-full ring-2 ring-purple-300 bg-purple-500" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* {searchTerm?.length <= 0 && (
             <div className="flex-1 flex flex-col justify-center items-center  duration-1000 transition-all ">
               <div className="text-opacity-80 text-white flex flex-col gap-5 items-center mt-5 lg:text-xl text-md transition-all duration-300 text-center">
                 <h3 className=" poppins-medium">
@@ -145,7 +216,7 @@ const NewContact = () => {
                 </h3>
               </div>
             </div>
-          )}
+          )} */}
         </DialogContent>
       </Dialog>
     </div>

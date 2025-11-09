@@ -91,7 +91,9 @@ const NewGroup = () => {
       <Dialog open={openNewGroupModal} onOpenChange={setOpenNewGroupModal}>
         <DialogContent className="bg-[#181920] border-none text-white w-[400px] h-[400px] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Creating New Group</DialogTitle>
+            <DialogTitle className="text-center text-lg font-semibold text-white">
+              Creating New Group
+            </DialogTitle>
             {/* <DialogDescription>Please select a contact.</DialogDescription> */}
           </DialogHeader>
           <div>
