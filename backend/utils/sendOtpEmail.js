@@ -14,7 +14,7 @@ const sendOtpEmail = async (to, text) => {
     await transporter.sendMail({
       from: process.env.EMAIL,
       to,
-      subject: "OTP for Signing up to TrueFit.",
+      subject: "OTP for Signing up to Chatrift.",
       text,
     });
   } catch (error) {
