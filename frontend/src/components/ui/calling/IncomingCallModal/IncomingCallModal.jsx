@@ -12,6 +12,7 @@ const IncomingCallModal = () => {
     setCallState,
     setAlreadyRinging,
     setCallAccepted,
+    setCallMessage,
   } = useAppStore();
 
   if (!incomingCall) {
@@ -39,6 +40,7 @@ const IncomingCallModal = () => {
     });
 
     setAlreadyRinging(false);
+    setCallMessage({ callMessageId: incomingCall.callMessageId });
     setIncomingCall(null);
   };
 
@@ -48,6 +50,7 @@ const IncomingCallModal = () => {
       callerId: incomingCall.callerId,
       declinerId: incomingCall.receiverId,
       callType: incomingCall.callType,
+      callMessageId: incomingCall.callMessageId,
     });
 
     setAlreadyRinging(false);
@@ -70,7 +73,7 @@ const IncomingCallModal = () => {
                 ) : (
                   <div
                     className={`uppercase h-24 w-24 text-2xl border flex justify-center items-center rounded-full ${getColor(
-                      0
+                      0,
                     )}`}
                   >
                     {incomingCall.callerName?.charAt(0)?.toUpperCase() || "U"}

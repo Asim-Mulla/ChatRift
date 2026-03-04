@@ -6,6 +6,12 @@ import { toast } from "sonner";
 export const useCallSocket = () => {
   const socket = useSocket();
 
+  // Handle call initiated
+  const handleCallInitiated = useCallback((callData) => {
+    const { setCallMessage } = useAppStore.getState();
+    setCallMessage(callData);
+  }, []);
+
   // Handle incoming call
   const handleIncomingCall = useCallback(
     (callData) => {
@@ -31,9 +37,10 @@ export const useCallSocket = () => {
         receiverId: callData.receiverId,
         callType: callData.callType,
         channelName: callData.channelName,
+        callMessageId: callData.callMessageId,
       });
     },
-    [socket]
+    [socket],
   );
 
   // Handle call accepted
@@ -57,8 +64,8 @@ export const useCallSocket = () => {
       callState?.callType === "video"
         ? 3000
         : callState?.callType === "voice"
-        ? 2000
-        : 1000
+          ? 2000
+          : 1000,
     );
   }, []);
 
@@ -89,8 +96,8 @@ export const useCallSocket = () => {
         callState?.callType === "video"
           ? 3000
           : callState?.callType === "voice"
-          ? 2000
-          : 1000
+            ? 2000
+            : 1000,
       );
     }
   }, []);
@@ -115,8 +122,8 @@ export const useCallSocket = () => {
         callState?.callType === "video"
           ? 3000
           : callState?.callType === "voice"
-          ? 2000
-          : 1000
+            ? 2000
+            : 1000,
       );
     }
   }, []);
@@ -154,14 +161,15 @@ export const useCallSocket = () => {
       callState?.callType === "video"
         ? 4000
         : callState?.callType === "voice"
-        ? 3000
-        : 1000
+          ? 3000
+          : 1000,
     );
   }, []);
 
   useEffect(() => {
     if (!socket) return;
 
+    socket.on("callInitiated", handleCallInitiated);
     socket.on("incomingCall", handleIncomingCall);
     socket.on("callAccepted", handleCallAccepted);
     socket.on("callDeclined", handleCallDeclined);
@@ -171,6 +179,7 @@ export const useCallSocket = () => {
     socket.on("userOffline", handleReceiverOffline);
 
     return () => {
+      socket.off("callInitiated", handleCallInitiated);
       socket.off("incomingCall", handleIncomingCall);
       socket.off("callAccepted", handleCallAccepted);
       socket.off("callDeclined", handleCallDeclined);

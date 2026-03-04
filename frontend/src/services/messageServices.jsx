@@ -18,17 +18,24 @@ export const uploadFile = (formData) => {
   });
 };
 
-export const deleteMessage = (message, group) => {
+export const deleteMessage = (messageId, groupData) => {
   return api.delete("/api/message/delete", {
-    data: { message, group },
+    data: { messageId, groupData },
     withCredentials: true,
   });
 };
 
-export const editMessage = (message, editedContent) => {
+export const deleteMessageForMe = (messageId, groupData) => {
+  return api.delete("/api/message/deleteForMe", {
+    data: { messageId, groupData },
+    withCredentials: true,
+  });
+};
+
+export const editMessage = (messageId, editedContent) => {
   return api.patch(
     "/api/message/edit",
-    { message, editedContent },
-    { withCredentials: true }
+    { messageId, editedContent },
+    { withCredentials: true },
   );
 };

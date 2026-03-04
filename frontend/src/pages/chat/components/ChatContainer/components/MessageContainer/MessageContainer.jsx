@@ -39,6 +39,7 @@ import { FaMicrophone } from "react-icons/fa";
 import WebmAudioPlayer from "./WebmAudioPlayer/WebmAudioPlayer";
 import ReplyMessage from "./ReplyMessageDialog/ReplyMessageDialog";
 import { entries } from "lodash";
+import LoadingMessages from "./LoadingMessages/LoadingMessages";
 
 // Helper function to handle blob download
 const downloadBlob = (blob, fileName) => {
@@ -91,6 +92,8 @@ const checkIfImage = (filePath) => {
   return imageRegex.test(filePath);
 };
 
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+
 const MessageContainer = () => {
   const {
     notifications,
@@ -116,12 +119,15 @@ const MessageContainer = () => {
     url: "",
     fileName: "",
   });
+  const [isFetchingMessages, setIsFetchingMessages] = useState(false);
 
   const fetchMessages = useCallback(async () => {
     try {
+      setIsFetchingMessages(true);
       const res = await (selectedChatType === "Group"
         ? getGroupMessages(selectedChatData._id)
         : getMessages(selectedChatData._id));
+      setIsFetchingMessages(false);
       setSelectedChatMessages(res.data.messages);
     } catch (err) {
       console.error(err);
@@ -265,7 +271,7 @@ const MessageContainer = () => {
 
         if (!fallbackResponse.ok) {
           throw new Error(
-            `Fallback download failed with status ${fallbackResponse.status}`
+            `Fallback download failed with status ${fallbackResponse.status}`,
           );
         }
 
@@ -303,7 +309,7 @@ const MessageContainer = () => {
             obs.disconnect();
           }
         },
-        { threshold: 0.6 }
+        { threshold: 0.6 },
       );
       observer.observe(message);
     }
@@ -331,7 +337,7 @@ const MessageContainer = () => {
           day: "2-digit",
           month: "long",
           year: "2-digit",
-        }
+        },
       );
 
       if (!groups[messageDate]) {
@@ -371,7 +377,7 @@ const MessageContainer = () => {
                       message,
                       messageIndex,
                       messages,
-                      isReceiverUnreadStart
+                      isReceiverUnreadStart,
                     )}
                   {selectedChatType === "Group" &&
                     renderGroupMessages(message, messageIndex, messages)}
@@ -380,7 +386,7 @@ const MessageContainer = () => {
             })}
           </div>
         </div>
-      )
+      ),
     );
   };
 
@@ -388,18 +394,23 @@ const MessageContainer = () => {
     message,
     messageIndex,
     messagesInGroup,
-    isReceiverUnreadStart
+    isReceiverUnreadStart,
   ) => {
+    const messageTime = new Date(message.createdAt).getTime();
+    const currentTime = Date.now();
+    const isWithinEditWindow = currentTime - messageTime <= FIFTEEN_MINUTES;
+
     const isOwnMessage = message?.sender === userInfo?.id;
     const againSameSender =
       messageIndex > 0 &&
       message?.sender === messagesInGroup[messageIndex - 1]?.sender;
-    const canDelete = isOwnMessage;
-    const canEdit = isOwnMessage;
+    // const canDelete = isOwnMessage;
+    const canEdit = isOwnMessage && isWithinEditWindow;
     const canReply =
       !message?.deleted &&
       message.messageType !== "voice-call" &&
       message.messageType !== "video-call";
+    const isDeletedForMe = message?.deletedFor.includes(userInfo.id);
 
     return (
       <div
@@ -408,7 +419,7 @@ const MessageContainer = () => {
           isOwnMessage ? "text-right" : "text-left"
         } group ${againSameSender ? "mt-1" : "mt-3"}`}
       >
-        {message?.deleted && (
+        {message?.deleted || isDeletedForMe ? (
           <div
             className={`${
               isOwnMessage
@@ -427,71 +438,184 @@ const MessageContainer = () => {
               </div>
             </span>
           </div>
-        )}
-        {!message?.deleted && message?.messageType === "text" && (
-          <div>
+        ) : null}
+        {!message?.deleted &&
+          !isDeletedForMe &&
+          message?.messageType === "text" && (
+            <div>
+              <div
+                className={`${
+                  isOwnMessage
+                    ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
+                    : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
+                } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+              >
+                <div className="flex flex-col">
+                  {message?.reply?.isReply && (
+                    <div
+                      onClick={() =>
+                        handleScrollToMessage(message?.reply?.to?._id)
+                      }
+                      className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start p-2 rounded border-s-3 mb-1 pb-3 cursor-pointer ${
+                        isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
+                      }`}
+                    >
+                      <div
+                        className={`flex flex-col ${
+                          checkIfImage(message?.reply?.to?.file?.url)
+                            ? "justify-center"
+                            : "justify-start"
+                        }`}
+                      >
+                        <span className={`font-semibold text-xs`}>
+                          {message?.reply?.to?.sender?._id === userInfo.id
+                            ? "You"
+                            : message?.reply?.to?.sender?.firstName
+                              ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
+                              : "this message was deleted"}
+                        </span>
+                        <span className="text-sm">
+                          {message?.reply?.to?.messageType === "text" ? (
+                            message?.reply?.to?.content
+                          ) : checkIfImage(message?.reply?.to?.file?.url) ? (
+                            <div className="flex items-center">
+                              <IoImageOutline className="mr-1" />
+                              <span>Image</span>
+                            </div>
+                          ) : (
+                            message?.reply?.to?.file?.fileName
+                          )}
+                        </span>
+                      </div>
+                      {checkIfImage(message?.reply?.to?.file?.url) ? (
+                        <div className="h-[40px] w-[60px] rounded overflow-hidden">
+                          <img
+                            src={message?.reply?.to?.file?.url}
+                            alt={message?.reply?.to?.file?.fileName}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                  <span className="text-start">{message?.content}</span>
+                </div>
+                <DeleteMessageDialog
+                  message={message}
+                  isOwnMessage={isOwnMessage}
+                />
+                {canEdit && <EditMessage message={message} />}
+                {canReply && <ReplyMessage message={message} />}
+                <div className="flex items-center justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
+                  {message.edited && <span>Edited</span>}
+                  {new Date(message.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  {isOwnMessage && isReceiverUnreadStart ? (
+                    <span className="text-[16px]">
+                      <IoCheckmarkDoneSharp />
+                    </span>
+                  ) : isOwnMessage ? (
+                    <span className="text-[16px] text-purple-500">
+                      <IoCheckmarkDoneSharp />
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          )}
+        {!message?.deleted &&
+          !isDeletedForMe &&
+          message?.messageType === "file" && (
             <div
               className={`${
                 isOwnMessage
                   ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+              } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] `}
             >
-              <div className="flex flex-col">
-                {message?.reply?.isReply && (
+              {checkIfImage(message?.file?.url) ? (
+                <>
                   <div
-                    onClick={() =>
-                      handleScrollToMessage(message?.reply?.to?._id)
-                    }
-                    className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start p-2 rounded border-s-3 mb-1 pb-3 cursor-pointer ${
-                      isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
-                    }`}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setShowImage(true);
+                      setImage(message?.file);
+                    }}
                   >
+                    <img
+                      src={message?.file?.url || "/placeholder.svg"}
+                      alt={message?.file?.fileName}
+                      className="max-w-full h-auto max-h-50 sm:max-h-64 md:max-h-80 rounded"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "block";
+                      }}
+                    />
                     <div
-                      className={`flex flex-col ${
-                        checkIfImage(message?.reply?.to?.file?.url)
-                          ? "justify-center"
-                          : "justify-start"
-                      }`}
+                      style={{ display: "none" }}
+                      className="text-center p-4"
                     >
-                      <span className={`font-semibold text-xs`}>
-                        {message?.reply?.to?.sender?._id === userInfo.id
-                          ? "You"
-                          : message?.reply?.to?.sender?.firstName
-                          ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
-                          : "this message was deleted"}
-                      </span>
-                      <span className="text-sm">
-                        {message?.reply?.to?.messageType === "text" ? (
-                          message?.reply?.to?.content
-                        ) : checkIfImage(message?.reply?.to?.file?.url) ? (
-                          <div className="flex items-center">
-                            <IoImageOutline className="mr-1" />
-                            <span>Image</span>
-                          </div>
-                        ) : (
-                          message?.reply?.to?.file?.fileName
-                        )}
-                      </span>
+                      <MdDescription className="text-4xl mx-auto mb-2" />
+                      <p className="text-sm">Image failed to load</p>
                     </div>
-                    {checkIfImage(message?.reply?.to?.file?.url) ? (
-                      <div className="h-[40px] w-[60px] rounded overflow-hidden">
-                        <img
-                          src={message?.reply?.to?.file?.url}
-                          alt={message?.reply?.to?.file?.fileName}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : null}
                   </div>
-                )}
-                <span className="text-start">{message?.content}</span>
-              </div>
-              {canDelete && <DeleteMessageDialog message={message} />}
-              {canEdit && <EditMessage message={message} />}
-              {canReply && <ReplyMessage message={message} />}
-              <div className="flex items-center justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
-                {message.edited && <span>Edited</span>}
+                  {canReply && <ReplyMessage message={message} />}
+                </>
+              ) : (
+                <>
+                  <div className="text-start min-w-0 w-full">
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
+                          {getFileIcon(
+                            message?.file?.fileName,
+                            message?.file?.fileType,
+                          )}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-xs sm:text-sm break-all">
+                            {message?.file?.fileName}
+                          </div>
+                          {message?.file?.size && (
+                            <div className="text-xs opacity-80">
+                              {formatFileSize(message?.file?.size)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
+                          downloadingFiles.has(message?.file?.url?.trim())
+                            ? "bg-gray-500 cursor-not-allowed"
+                            : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
+                        }`}
+                        onClick={() => handleFileDownload(message?.file)}
+                        disabled={downloadingFiles.has(
+                          message?.file?.url?.trim(),
+                        )}
+                        title={
+                          downloadingFiles.has(message?.file?.url?.trim())
+                            ? "Downloading..."
+                            : "Download file"
+                        }
+                      >
+                        {downloadingFiles.has(message?.file?.url?.trim()) ? (
+                          <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <MdDownload className="text-white" />
+                        )}
+                      </button>
+                      {message.file.fileName.endsWith(".webm") && (
+                        <WebmAudioPlayer file={message.file} />
+                      )}
+                    </div>
+                  </div>
+                  {canReply && <ReplyMessage message={message} />}
+                </>
+              )}
+              <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500 mt-1 text-right">
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -506,112 +630,12 @@ const MessageContainer = () => {
                   </span>
                 ) : null}
               </div>
+              <DeleteMessageDialog
+                message={message}
+                isOwnMessage={isOwnMessage}
+              />
             </div>
-          </div>
-        )}
-        {!message?.deleted && message?.messageType === "file" && (
-          <div
-            className={`${
-              isOwnMessage
-                ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
-                : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-            } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] `}
-          >
-            {checkIfImage(message?.file?.url) ? (
-              <>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setShowImage(true);
-                    setImage(message?.file);
-                  }}
-                >
-                  <img
-                    src={message?.file?.url || "/placeholder.svg"}
-                    alt={message?.file?.fileName}
-                    className="max-w-full h-auto max-h-50 sm:max-h-64 md:max-h-80 rounded"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "block";
-                    }}
-                  />
-                  <div style={{ display: "none" }} className="text-center p-4">
-                    <MdDescription className="text-4xl mx-auto mb-2" />
-                    <p className="text-sm">Image failed to load</p>
-                  </div>
-                </div>
-                {canReply && <ReplyMessage message={message} />}
-              </>
-            ) : (
-              <>
-                <div className="text-start min-w-0 w-full">
-                  <div className="flex items-start justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
-                        {getFileIcon(
-                          message?.file?.fileName,
-                          message?.file?.fileType
-                        )}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs sm:text-sm break-all">
-                          {message?.file?.fileName}
-                        </div>
-                        {message?.file?.size && (
-                          <div className="text-xs opacity-80">
-                            {formatFileSize(message?.file?.size)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
-                        downloadingFiles.has(message?.file?.url?.trim())
-                          ? "bg-gray-500 cursor-not-allowed"
-                          : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
-                      }`}
-                      onClick={() => handleFileDownload(message?.file)}
-                      disabled={downloadingFiles.has(
-                        message?.file?.url?.trim()
-                      )}
-                      title={
-                        downloadingFiles.has(message?.file?.url?.trim())
-                          ? "Downloading..."
-                          : "Download file"
-                      }
-                    >
-                      {downloadingFiles.has(message?.file?.url?.trim()) ? (
-                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                      ) : (
-                        <MdDownload className="text-white" />
-                      )}
-                    </button>
-                    {message.file.fileName.endsWith(".webm") && (
-                      <WebmAudioPlayer file={message.file} />
-                    )}
-                  </div>
-                </div>
-                {canReply && <ReplyMessage message={message} />}
-              </>
-            )}
-            <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500 mt-1 text-right">
-              {new Date(message.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              {isOwnMessage && isReceiverUnreadStart ? (
-                <span className="text-[16px]">
-                  <IoCheckmarkDoneSharp />
-                </span>
-              ) : isOwnMessage ? (
-                <span className="text-[16px] text-purple-500">
-                  <IoCheckmarkDoneSharp />
-                </span>
-              ) : null}
-            </div>
-            {canDelete && <DeleteMessageDialog message={message} />}
-          </div>
-        )}
+          )}
         {!message?.deleted && message?.isCall && (
           <div>
             <div
@@ -654,17 +678,17 @@ const MessageContainer = () => {
                       ? `${
                           message.callDuration >= 60
                             ? `${Math.floor(
-                                message.callDuration / 60
+                                message.callDuration / 60,
                               )} min ${String(
-                                message.callDuration % 60
+                                message.callDuration % 60,
                               ).padStart(2, "0")} sec`
                             : `${message.callDuration} sec`
                         }`
                       : !message.accepted && isOwnMessage
-                      ? "No answer"
-                      : !message.accepted && !isOwnMessage
-                      ? "Missed"
-                      : null}
+                        ? "No answer"
+                        : !message.accepted && !isOwnMessage
+                          ? "Missed"
+                          : null}
                   </span>
                 </div>
               </div>
@@ -674,6 +698,10 @@ const MessageContainer = () => {
                   minute: "2-digit",
                 })}
               </div>
+              <DeleteMessageDialog
+                message={message}
+                isOwnMessage={isOwnMessage}
+              />
             </div>
           </div>
         )}
@@ -682,14 +710,18 @@ const MessageContainer = () => {
   };
 
   const renderGroupMessages = (message, messageIndex, messagesInGroup) => {
+    const messageTime = new Date(message.createdAt).getTime();
+    const currentTime = Date.now();
+    const isWithinEditWindow = currentTime - messageTime <= FIFTEEN_MINUTES;
     const isOwnMessage = message.sender._id === userInfo.id;
     const againSameSender =
       messageIndex > 0 &&
       message?.sender?._id === messagesInGroup[messageIndex - 1]?.sender?._id;
     const isAdmin = selectedChatData.admin === userInfo.id;
-    const canDelete = isOwnMessage || isAdmin;
-    const canEdit = isOwnMessage;
+    // const canDelete = isOwnMessage || isAdmin;
+    const canEdit = isOwnMessage && isWithinEditWindow;
     const canReply = !message.deleted;
+    const isDeletedForMe = message?.deletedFor.includes(userInfo.id);
 
     return (
       <div
@@ -717,7 +749,7 @@ const MessageContainer = () => {
               ) : (
                 <div
                   className={`uppercase h-6 w-6 text-xs border flex justify-center items-center rounded-full ${getColor(
-                    message?.sender?.color
+                    message?.sender?.color,
                   )}`}
                 >
                   {message?.sender?.firstName && message?.sender?.lastName
@@ -741,7 +773,7 @@ const MessageContainer = () => {
           </div>
         )}
 
-        {message?.deleted && (
+        {message?.deleted || isDeletedForMe ? (
           <div
             className={`${
               isOwnMessage
@@ -750,205 +782,225 @@ const MessageContainer = () => {
             } relative border inline-block p-2 sm:p-3 italic rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words text-sm sm:text-base`}
           >
             <MdOutlineDoNotDisturb className="inline-block text-xl align-text-bottom me-1" />
-            {isOwnMessage ? (
-              <span>
-                <span className="">You deleted this message</span>
-                <div className="text-xs text-gray-500 mt-1 text-right">
-                  {new Date(message.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              </span>
-            ) : (
-              <span>
-                <span className="">This message was deleted</span>
-                <div className="text-xs text-gray-500 mt-1 text-right">
-                  {new Date(message.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              </span>
-            )}
+            <span>
+              <span className="">This message was deleted</span>
+              <div className="text-xs text-gray-500 mt-1 text-right">
+                {new Date(message.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </span>
           </div>
-        )}
-        {!message?.deleted && message?.messageType === "text" && (
-          <div>
+        ) : null}
+        {!message?.deleted &&
+          !isDeletedForMe &&
+          message?.messageType === "text" && (
+            <div>
+              <div
+                className={`${
+                  isOwnMessage
+                    ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
+                    : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
+                } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+              >
+                <div className="flex flex-col">
+                  {message?.reply?.isReply && (
+                    <div
+                      onClick={() =>
+                        handleScrollToMessage(message?.reply?.to?._id)
+                      }
+                      className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start py-2 px-3 rounded border-s-3 mb-1 cursor-pointer ${
+                        isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
+                      }`}
+                    >
+                      <div
+                        className={`flex flex-col  ${
+                          checkIfImage(message?.reply?.to?.file?.url)
+                            ? "justify-center"
+                            : "justify-start"
+                        }`}
+                      >
+                        <span className={`font-semibold text-xs`}>
+                          {message?.reply?.to?.sender?._id === userInfo.id
+                            ? "You"
+                            : message?.reply?.to?.sender?.firstName
+                              ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
+                              : "this message was deleted"}
+                        </span>
+                        <span className="text-sm">
+                          {message?.reply?.to?.messageType === "text" ? (
+                            message?.reply?.to?.content
+                          ) : checkIfImage(message?.reply?.to?.file?.url) ? (
+                            <div className="flex items-center">
+                              <IoImageOutline className="mr-1" />
+                              <span>Image</span>
+                            </div>
+                          ) : (
+                            message?.reply?.to?.file?.fileName
+                          )}
+                        </span>
+                      </div>
+                      {checkIfImage(message?.reply?.to?.file?.url) ? (
+                        <div className="h-[40px] w-[60px] rounded overflow-hidden">
+                          <img
+                            src={message?.reply?.to?.file?.url}
+                            alt={message?.reply?.to?.file?.fileName}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                  <span className="text-start">{message?.content}</span>
+                </div>
+                <DeleteMessageDialog
+                  message={message}
+                  isOwnMessage={isOwnMessage}
+                  isAdmin={isAdmin}
+                />
+                {canEdit && <EditMessage message={message} />}
+                {canReply && <ReplyMessage message={message} />}
+                <div className="flex justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
+                  {message.edited && <span>Edited</span>}
+                  {new Date(message.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        {!message?.deleted &&
+          !isDeletedForMe &&
+          message?.messageType === "file" && (
             <div
               className={`${
                 isOwnMessage
                   ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words`}
             >
-              <div className="flex flex-col">
-                {message?.reply?.isReply && (
+              {checkIfImage(message?.file?.url) ? (
+                <>
                   <div
-                    onClick={() =>
-                      handleScrollToMessage(message?.reply?.to?._id)
-                    }
-                    className={`max-h-[70px] overflow-y-hidden flex justify-between gap-5 text-start py-2 px-3 rounded border-s-3 mb-1 cursor-pointer ${
-                      isOwnMessage ? "bg-[#8417ff]/25" : "bg-[#2e2b33]/80"
-                    }`}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setShowImage(true);
+                      setImage(message?.file);
+                    }}
                   >
+                    <img
+                      src={message?.file?.url || "/placeholder.svg"}
+                      alt={message?.file?.fileName}
+                      className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded break-words"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "block";
+                      }}
+                    />
                     <div
-                      className={`flex flex-col  ${
-                        checkIfImage(message?.reply?.to?.file?.url)
-                          ? "justify-center"
-                          : "justify-start"
-                      }`}
+                      style={{ display: "none" }}
+                      className="text-center p-4"
                     >
-                      <span className={`font-semibold text-xs`}>
-                        {message?.reply?.to?.sender?._id === userInfo.id
-                          ? "You"
-                          : message?.reply?.to?.sender?.firstName
-                          ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
-                          : "this message was deleted"}
-                      </span>
-                      <span className="text-sm">
-                        {message?.reply?.to?.messageType === "text" ? (
-                          message?.reply?.to?.content
-                        ) : checkIfImage(message?.reply?.to?.file?.url) ? (
-                          <div className="flex items-center">
-                            <IoImageOutline className="mr-1" />
-                            <span>Image</span>
-                          </div>
-                        ) : (
-                          message?.reply?.to?.file?.fileName
-                        )}
-                      </span>
+                      <MdDescription className="text-4xl mx-auto mb-2" />
+                      <p className="text-sm">Image failed to load</p>
                     </div>
-                    {checkIfImage(message?.reply?.to?.file?.url) ? (
-                      <div className="h-[40px] w-[60px] rounded overflow-hidden">
-                        <img
-                          src={message?.reply?.to?.file?.url}
-                          alt={message?.reply?.to?.file?.fileName}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : null}
                   </div>
-                )}
-                <span className="text-start">{message?.content}</span>
-              </div>
-              {canDelete && <DeleteMessageDialog message={message} />}
-              {canEdit && <EditMessage message={message} />}
-              {canReply && <ReplyMessage message={message} />}
-              <div className="flex justify-end gap-1 text-xs text-gray-500 font-semibold mt-1 text-right">
-                {message.edited && <span>Edited</span>}
+                  {canReply && <ReplyMessage message={message} />}
+                </>
+              ) : (
+                <>
+                  <div className="text-start min-w-0 w-full">
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
+                          {getFileIcon(
+                            message?.file?.fileName,
+                            message?.file?.fileType,
+                          )}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-xs sm:text-sm break-all">
+                            {message?.file?.fileName}
+                          </div>
+                          {message?.file?.size && (
+                            <div className="text-xs opacity-80">
+                              {formatFileSize(message?.file?.size)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
+                          downloadingFiles.has(message?.file?.url?.trim())
+                            ? "bg-gray-500 cursor-not-allowed"
+                            : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
+                        }`}
+                        onClick={() => handleFileDownload(message?.file)}
+                        disabled={downloadingFiles.has(
+                          message?.file?.url?.trim(),
+                        )}
+                        title={
+                          downloadingFiles.has(message?.file?.url?.trim())
+                            ? "Downloading..."
+                            : "Download file"
+                        }
+                      >
+                        {downloadingFiles.has(message?.file?.url?.trim()) ? (
+                          <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <MdDownload className="text-white" />
+                        )}
+                      </button>
+                      {message.file.fileName.endsWith(".webm") && (
+                        <WebmAudioPlayer file={message.file} />
+                      )}
+                    </div>
+                  </div>
+                  {canReply && <ReplyMessage message={message} />}
+                </>
+              )}
+              <DeleteMessageDialog
+                message={message}
+                isOwnMessage={isOwnMessage}
+                isAdmin={isAdmin}
+              />
+              <div className="text-xs text-gray-500 mt-1 text-right">
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </div>
             </div>
-          </div>
-        )}
-        {!message?.deleted && message?.messageType === "file" && (
-          <div
-            className={`${
-              isOwnMessage
-                ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
-                : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-            } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words`}
-          >
-            {checkIfImage(message?.file?.url) ? (
-              <>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setShowImage(true);
-                    setImage(message?.file);
-                  }}
-                >
-                  <img
-                    src={message?.file?.url || "/placeholder.svg"}
-                    alt={message?.file?.fileName}
-                    className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded break-words"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "block";
-                    }}
-                  />
-                  <div style={{ display: "none" }} className="text-center p-4">
-                    <MdDescription className="text-4xl mx-auto mb-2" />
-                    <p className="text-sm">Image failed to load</p>
-                  </div>
-                </div>
-                {canReply && <ReplyMessage message={message} />}
-              </>
-            ) : (
-              <>
-                <div className="text-start min-w-0 w-full">
-                  <div className="flex items-start justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">
-                        {getFileIcon(
-                          message?.file?.fileName,
-                          message?.file?.fileType
-                        )}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs sm:text-sm break-all">
-                          {message?.file?.fileName}
-                        </div>
-                        {message?.file?.size && (
-                          <div className="text-xs opacity-80">
-                            {formatFileSize(message?.file?.size)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      className={`text-sm sm:text-lg p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${
-                        downloadingFiles.has(message?.file?.url?.trim())
-                          ? "bg-gray-500 cursor-not-allowed"
-                          : "bg-gray-600 hover:bg-gray-700 cursor-pointer"
-                      }`}
-                      onClick={() => handleFileDownload(message?.file)}
-                      disabled={downloadingFiles.has(
-                        message?.file?.url?.trim()
-                      )}
-                      title={
-                        downloadingFiles.has(message?.file?.url?.trim())
-                          ? "Downloading..."
-                          : "Download file"
-                      }
-                    >
-                      {downloadingFiles.has(message?.file?.url?.trim()) ? (
-                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                      ) : (
-                        <MdDownload className="text-white" />
-                      )}
-                    </button>
-                    {message.file.fileName.endsWith(".webm") && (
-                      <WebmAudioPlayer file={message.file} />
-                    )}
-                  </div>
-                </div>
-                {canReply && <ReplyMessage message={message} />}
-              </>
-            )}
-            {canDelete && <DeleteMessageDialog message={message} />}
-            <div className="text-xs text-gray-500 mt-1 text-right">
-              {new Date(message.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
-          </div>
-        )}
+          )}
       </div>
     );
   };
+
+  if (
+    !selectedChatMessages.length &&
+    // selectedChatType === "Group" &&
+    !isFetchingMessages
+  ) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-opacity-80 text-white flex flex-col justify-center items-center text-center gap-2 text-2xl lg:text-3xl">
+          <h3 className="poppins-medium">No messages yet!</h3>
+          <p className="text-[14px] italic text-gray-400">
+            Break the silence and start chatting!
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={containerRef}
       className="flex-1 overflow-y-auto scrollbar-dark p-2 sm:p-4 md:px-6 lg:px-8 w-full"
     >
-      {renderMessages()}
+      {isFetchingMessages ? <LoadingMessages /> : renderMessages()}
       <div ref={scrollRef} />
       {showImage && (
         <div className="fixed z-[1000] top-0 left-0 h-[100vh] w-[100vw] flex items-center justify-center backdrop-blur-lg flex-col p-4">

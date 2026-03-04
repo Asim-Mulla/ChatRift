@@ -9,72 +9,60 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useSocket } from "@/Context/SocketContext";
-import { deleteMessage } from "@/services/messageServices";
+import { deleteMessage, deleteMessageForMe } from "@/services/messageServices";
 import { useAppStore } from "@/store/store";
 import { useState } from "react";
 import { MdOutlineDelete } from "react-icons/md";
 import { toast } from "sonner";
 
-const DeleteMessageDialog = ({ message }) => {
+const DeleteMessageDialog = ({ message, isOwnMessage, isAdmin = false }) => {
   const [openDeleteMessageDialog, setOpenDeleteMessageDialog] = useState(false);
   const [deletingMessages, setDeletingMessages] = useState(new Set());
   const socket = useSocket();
-  const {
-    userInfo,
-    selectedChatData,
-    selectedChatType,
-    deleteMessageFromStore,
-  } = useAppStore();
+  const { selectedChatData, selectedChatType, deleteMessageFromStore } =
+    useAppStore();
 
   const handleDeleteMessage = async (message) => {
     if (deletingMessages.has(message._id)) return;
 
     setDeletingMessages((prev) => new Set([...prev, message._id]));
+    const messageId = message._id;
+    const groupData =
+      selectedChatType === "Group" ? { groupId: selectedChatData._id } : null;
 
     try {
-      toast.promise(
-        deleteMessage(
-          message,
-          selectedChatType === "Group"
-            ? {
+      toast.promise(deleteMessage(messageId, groupData), {
+        loading: "Deleting message...",
+        success: (res) => {
+          if (res.status === 200) {
+            deleteMessageFromStore(res.data.message);
+
+            if (socket) {
+              const data = {
+                message: res.data.message,
+                chatType: selectedChatType,
                 groupId: selectedChatData._id,
-                admin: selectedChatData.admin,
+              };
+
+              if (selectedChatType === "Contact") {
+                socket.emit("deleteMessage", data);
+              } else if (selectedChatType === "Group") {
+                socket.emit("deleteGroupMessage", data);
               }
-            : null
-        ),
-        {
-          loading: "Deleting message...",
-          success: (res) => {
-            if (res.status === 200) {
-              deleteMessageFromStore(res.data.message);
-
-              if (socket) {
-                const data = {
-                  message: res.data.message,
-                  chatType: selectedChatType,
-                  groupId: selectedChatData._id,
-                };
-
-                if (selectedChatType === "Contact") {
-                  socket.emit("deleteMessage", data);
-                } else if (selectedChatType === "Group") {
-                  socket.emit("deleteGroupMessage", data);
-                }
-              }
-
-              return "Message deleted successfully!";
-            } else {
-              console.log(res);
-              throw new Error("Something went wrong!");
             }
-          },
-          error: (err) => {
-            console.log(err);
-            console.log(err.response.data);
-            return err?.response?.data || "Error while deleting message.";
-          },
-        }
-      );
+
+            return "Message deleted successfully!";
+          } else {
+            console.log(res);
+            throw new Error("Something went wrong!");
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          console.log(err.response.data);
+          return err?.response?.data || "Error while deleting message.";
+        },
+      });
     } catch (error) {
       console.error("Error deleting message:", error);
       toast.error("Failed to delete message");
@@ -87,7 +75,48 @@ const DeleteMessageDialog = ({ message }) => {
     }
   };
 
-  const isOwnMessage = (message.sender._id || message.sender) === userInfo.id;
+  const handleDeleteMessageForMe = async (message) => {
+    if (deletingMessages.has(message._id)) return;
+
+    setDeletingMessages((prev) => new Set([...prev, message._id]));
+    const messageId = message._id;
+    const groupData =
+      selectedChatType === "Group" ? { groupId: selectedChatData._id } : null;
+
+    try {
+      toast.promise(deleteMessageForMe(messageId, groupData), {
+        loading: "Deleting message...",
+        success: (res) => {
+          if (res.status === 200) {
+            deleteMessageFromStore(res.data.message);
+            return "Message deleted successfully!";
+          } else {
+            console.log(res);
+            throw new Error("Something went wrong!");
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          console.log(err.response.data);
+          return err?.response?.data || "Error while deleting message.";
+        },
+      });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message");
+    } finally {
+      setDeletingMessages((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(message._id);
+        return newSet;
+      });
+    }
+  };
+
+  const canDeleteForEveryone =
+    (isOwnMessage || isAdmin) &&
+    message.messageType !== "voice-call" &&
+    message.messageType !== "video-call";
 
   return (
     <div>
@@ -110,23 +139,33 @@ const DeleteMessageDialog = ({ message }) => {
         onOpenChange={setOpenDeleteMessageDialog}
       >
         {/* <AlertDialogTrigger>Open</AlertDialogTrigger> */}
-        <AlertDialogContent className="bg-[#181920] text-white">
+        <AlertDialogContent className="bg-[#181920] text-white border-1 border-gray-500">
           <AlertDialogHeader>
-            <AlertDialogTitle>Deleting Message!</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
+            <AlertDialogTitle className="text-center">
+              Deleting Message!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-400">
               Are you sure you want to delete this message?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex !flex-col">
+            {canDeleteForEveryone && (
+              <AlertDialogAction
+                className="bg-red-800 hover:bg-red-700"
+                onClick={() => handleDeleteMessage(message)}
+              >
+                Delete for everyone
+              </AlertDialogAction>
+            )}
+            <AlertDialogAction
+              className="bg-red-800 hover:bg-red-700"
+              onClick={() => handleDeleteMessageForMe(message)}
+            >
+              Delete for me
+            </AlertDialogAction>
             <AlertDialogCancel className="bg-[#181920] hover:bg-gray-800 hover:text-white">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-800 hover:bg-red-500"
-              onClick={() => handleDeleteMessage(message)}
-            >
-              Delete
-            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

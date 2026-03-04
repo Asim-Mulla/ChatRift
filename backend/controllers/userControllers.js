@@ -6,7 +6,10 @@ export const getUsersForDm = async (req, res) => {
   try {
     const { userId } = req;
 
-    const users = await User.find({ _id: { $ne: userId } });
+    const users = await User.find(
+      { _id: { $ne: userId } },
+      "email firstName lastName image color verified",
+    );
 
     return res.status(200).json({ users });
   } catch (error) {
@@ -82,7 +85,7 @@ export const getUsersForGroup = async (req, res) => {
   try {
     const users = await User.find(
       { _id: { $ne: req.userId } },
-      "email firstName lastName _id verified"
+      "email firstName lastName _id verified",
     );
 
     const contacts = users.map((user) => ({
@@ -112,7 +115,7 @@ export const removeNotification = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $pull: { notifications: { user: notifierStr } } },
-      { new: true } // return updated doc
+      { new: true }, // return updated doc
     );
 
     if (!updatedUser) {
@@ -139,11 +142,11 @@ export const getUserInfo = async (req, res) => {
 
     const user = await User.findById(
       userId,
-      "_id email firstName lastName color profileSetup image verified"
+      "_id email firstName lastName color profileSetup image verified",
     );
 
     if (!user) {
-      return res.status(400).send("User not found!");
+      return res.status(404).send("User not found!");
     }
 
     return res.status(200).json({ user });
@@ -165,7 +168,7 @@ export const saveFcmToken = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(400).send("User not found!");
+      return res.status(404).send("User not found!");
     }
 
     user.fcmToken = token;

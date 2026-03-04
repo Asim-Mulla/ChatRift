@@ -25,6 +25,9 @@ const CallInterface = () => {
     setAlreadyRinging,
     callAccepted,
     setCallAccepted,
+    callMessage,
+    setCallMessage,
+    incomingCall,
   } = useAppStore();
   const [localTracks, setLocalTracks] = useState({ audio: null, video: null });
   const [remoteUsers, setRemoteUsers] = useState([]);
@@ -78,7 +81,7 @@ const CallInterface = () => {
         const res = await generateAgoraToken(
           callState?.channelName,
           userInfo?.id,
-          "publisher"
+          "publisher",
         );
 
         if (res.status === 200) {
@@ -113,7 +116,7 @@ const CallInterface = () => {
       clientRef?.current?.on("user-left", handleUserLeft);
       clientRef?.current?.on(
         "connection-state-changed",
-        handleConnectionStateChanged
+        handleConnectionStateChanged,
       );
 
       if (tokenData) {
@@ -122,7 +125,7 @@ const CallInterface = () => {
           tokenData?.appId,
           callState?.channelName,
           tokenData?.token,
-          String(userInfo.id)
+          String(userInfo.id),
         );
       } else {
         console.error("Invalid agora token.");
@@ -140,7 +143,7 @@ const CallInterface = () => {
       } catch (audioError) {
         console.error("Failed to create audio track:", audioError);
         throw new Error(
-          "Failed to access microphone. Please check permissions."
+          "Failed to access microphone. Please check permissions.",
         );
       }
 
@@ -163,7 +166,7 @@ const CallInterface = () => {
 
       // Publish local tracks
       const tracksToPublish = Object.values(tracks).filter(
-        (track) => track !== null
+        (track) => track !== null,
       );
       if (tracksToPublish.length > 0) {
         await clientRef?.current?.publish(tracksToPublish);
@@ -178,12 +181,12 @@ const CallInterface = () => {
       if (error.message.includes("token")) {
         setConnectionStatus("Authentication failed");
         toast.error(
-          "Failed to authenticate with calling service. Please try again."
+          "Failed to authenticate with calling service. Please try again.",
         );
       } else if (error.message.includes("microphone")) {
         setConnectionStatus("Microphone access denied");
         toast.error(
-          "Failed to access microphone. Please check your permissions."
+          "Failed to access microphone. Please check your permissions.",
         );
       } else if (error.message.includes("camera")) {
         setConnectionStatus("Camera access denied");
@@ -260,7 +263,7 @@ const CallInterface = () => {
     callStartTimeRef.current = Date.now();
     durationIntervalRef.current = setInterval(() => {
       const elapsed = Math.floor(
-        (Date.now() - callStartTimeRef.current) / 1000
+        (Date.now() - callStartTimeRef.current) / 1000,
       );
       setCallDuration(elapsed);
     }, 1000);
@@ -294,8 +297,10 @@ const CallInterface = () => {
         duration: callDuration,
         callType: callState?.callType,
         isInitiator: callState.isInitiator,
+        callMessageId: callMessage ? callMessage.callMessageId : null,
       });
       setCallAccepted(false);
+      setCallMessage(null);
     }
     runCleanup();
   };
@@ -373,7 +378,7 @@ const CallInterface = () => {
             ) : (
               <div
                 className={`uppercase h-10 w-10 text-lg border flex justify-center items-center rounded-full ${getColor(
-                  0
+                  0,
                 )}`}
               >
                 {callState.remoteUser?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -426,7 +431,7 @@ const CallInterface = () => {
                       ) : (
                         <div
                           className={`uppercase h-32 w-32 text-4xl border flex justify-center items-center rounded-full ${getColor(
-                            0
+                            0,
                           )}`}
                         >
                           {callState.remoteUser?.name
@@ -469,7 +474,7 @@ const CallInterface = () => {
                 ) : (
                   <div
                     className={`uppercase h-48 w-48 text-6xl border flex justify-center items-center rounded-full ${getColor(
-                      0
+                      0,
                     )}`}
                   >
                     {callState.remoteUser?.name?.charAt(0)?.toUpperCase() ||

@@ -31,7 +31,7 @@ const ChatHeader = () => {
     if (selectedChatType === "Contact") {
       if (selectedChatData?.firstName) {
         setChatName(
-          `${selectedChatData.firstName} ${selectedChatData.lastName}`
+          `${selectedChatData.firstName} ${selectedChatData.lastName}`,
         );
       } else {
         setChatName(selectedChatData?.email);
@@ -98,17 +98,17 @@ const ChatHeader = () => {
       userInfo.id !== selectedChatData.admin
     ) {
       setRemoved(
-        !selectedChatData.members.find((member) => member._id === userInfo.id)
+        !selectedChatData.members.find((member) => member._id === userInfo.id),
       );
     }
   }, [groups, selectedChatData]);
 
   return (
-    <div className="border-b-2 border-[#2f303b] flex items-center justify-between px-6 py-4">
+    <div className="border-b-2 border-[#2f303b] flex items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
       <div className="flex items-center gap-5 flex-1 min-w-0">
         <div className="flex justify-center items-center flex-shrink-0">
           <button
-            className="text-neutral-400 text-2xl focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer"
+            className="text-neutral-400 text-lg sm:text-xl focus:border-none focus:outline-none focus:text-white cursor-pointer"
             onClick={() => closeChat()}
           >
             <FaArrowLeft />
@@ -129,7 +129,7 @@ const ChatHeader = () => {
                 ) : (
                   <div
                     className={`uppercase h-10 w-10  text-lg border flex justify-center items-center rounded-full ${getColor(
-                      selectedChatData?.color
+                      selectedChatData?.color,
                     )}`}
                   >
                     {selectedChatData?.firstName && selectedChatData?.lastName
@@ -155,7 +155,7 @@ const ChatHeader = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <div
-                className="min-w-0"
+                className="min-w-0 font-semibold"
                 style={{
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -175,8 +175,8 @@ const ChatHeader = () => {
                 {isTyping
                   ? "typing..."
                   : DMOnlineContacts?.includes(String(selectedChatData._id))
-                  ? "online"
-                  : null}
+                    ? "online"
+                    : null}
               </div>
             )}
             {selectedChatData &&

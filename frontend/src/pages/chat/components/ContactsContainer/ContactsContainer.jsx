@@ -115,7 +115,7 @@ const ContactsContainer = () => {
   const getUserGroups = async () => {
     try {
       const res = await getGroups();
-      if (res.status === 201) {
+      if (res.status === 200) {
         setGroups(res.data.groups);
       }
     } catch (error) {

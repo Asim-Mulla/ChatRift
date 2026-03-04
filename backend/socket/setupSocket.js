@@ -4,6 +4,7 @@ import Message from "../models/messageModel.js";
 import Group from "../models/groupModel.js";
 import User from "../models/userModel.js";
 import { sendPushNotification } from "../utils/sendPushNotification.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 
 const setupSocket = (server) => {
   const io = new SocketIOServer(server, {
@@ -74,17 +75,39 @@ const setupSocket = (server) => {
     const senderSocketId = userSocketMap[message.sender];
     const receiverSocketId = userSocketMap[message.receiver];
 
-    const newMessage = new Message(message);
+    let encryptedMessage = null;
+    if (message.messageType === "text") {
+      // Encrypting the text message content
+      encryptedMessage = {
+        ...message,
+        content: encrypt(message.content),
+      };
+    } else if (message.messageType === "file") {
+      // Encrypting the file message's url, fileName, and fileCloudName
+      encryptedMessage = {
+        ...message,
+        file: {
+          ...message.file,
+          url: encrypt(message.file.url),
+          fileName: encrypt(message.file.fileName),
+          fileCloudName: encrypt(message.file.fileCloudName),
+        },
+      };
+    } else {
+      encryptedMessage = { ...message };
+    }
+
+    const newMessage = new Message(encryptedMessage);
     await newMessage.save();
 
     const messageData = await Message.findById(newMessage._id)
       .populate(
         "sender",
-        "id email firstName lastName image color verified notifications"
+        "id email firstName lastName image color verified notifications",
       )
       .populate(
         "receiver",
-        "id email firstName lastName image color verified notifications"
+        "id email firstName lastName image color verified notifications",
       )
       .populate({
         path: "reply.to",
@@ -94,6 +117,31 @@ const setupSocket = (server) => {
             "id email firstName lastName image color verified notifications",
         },
       });
+
+    if (messageData.messageType === "text") {
+      // Dencrypting the text message content
+      messageData.content = decrypt(messageData.content);
+
+      // Checking if the message is a reply
+      if (messageData?.reply?.to?.messageType === "text") {
+        // If reply to text message
+        messageData.reply.to.content = decrypt(messageData.reply.to.content);
+      } else if (messageData?.reply?.to?.messageType === "file") {
+        // If reply to file message
+        messageData.reply.to.file.url = decrypt(messageData.reply.to.file.url);
+        messageData.reply.to.file.fileName = decrypt(
+          messageData.reply.to.file.fileName,
+        );
+        messageData.reply.to.file.fileCloudName = decrypt(
+          messageData.reply.to.file.fileCloudName,
+        );
+      }
+    } else if (messageData.messageType === "file") {
+      // Decrypting file message data
+      messageData.file.url = decrypt(messageData.file.url);
+      messageData.file.fileName = decrypt(messageData.file.fileName);
+      messageData.file.fileCloudName = decrypt(messageData.file.fileCloudName);
+    }
 
     // Emit to sender
     if (senderSocketId) {
@@ -112,13 +160,13 @@ const setupSocket = (server) => {
     const senderIdStr = message.sender.toString();
     const result = await User.updateOne(
       { _id: message.receiver, "notifications.user": senderIdStr },
-      { $inc: { "notifications.$.count": 1 } }
+      { $inc: { "notifications.$.count": 1 } },
     );
 
     if (result.matchedCount === 0) {
       await User.updateOne(
         { _id: message.receiver },
-        { $push: { notifications: { user: senderIdStr, count: 1 } } }
+        { $push: { notifications: { user: senderIdStr, count: 1 } } },
       );
     }
   };
@@ -133,32 +181,100 @@ const setupSocket = (server) => {
     }
   };
 
-  const handleMessageEdited = ({ editedMessage, group }) => {
-    if (group && group.members.length) {
-      group.members.forEach((memberId) => {
-        const memberSocketId = userSocketMap[memberId];
-
-        if (memberSocketId) {
-          io.to(memberSocketId).emit("messageEdited", { editedMessage, group });
+  const handleMessageEdited = async ({ editedMessage, groupId }) => {
+    try {
+      editedMessage.content = decrypt(editedMessage.content);
+      let group = null;
+      if (groupId) {
+        group = await Group.findById(groupId);
+        if (!group) {
+          throw new Error(
+            `Invalid group id! Could not find group with id ${groupId}`,
+          );
         }
-      });
-
-      const adminSocketId = userSocketMap[group.admin];
-
-      if (adminSocketId) {
-        io.to(adminSocketId).emit("messageEdited", { editedMessage, group });
-      }
-    } else {
-      const senderSocketId = userSocketMap[editedMessage.sender];
-      const receiverSocketId = userSocketMap[editedMessage.receiver];
-
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("messageEdited", { editedMessage });
       }
 
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("messageEdited", { editedMessage });
+      if (groupId && group) {
+        // If the message is a group message
+
+        if (
+          editedMessage?.reply?.isReply &&
+          editedMessage?.reply?.to?.messageType === "text"
+        ) {
+          editedMessage.reply.to.content = decrypt(
+            editedMessage.reply.to.content,
+          );
+        } else if (
+          editedMessage?.reply?.isReply &&
+          editedMessage?.reply?.to?.messageType === "file"
+        ) {
+          editedMessage.reply.to.file.url = decrypt(
+            editedMessage.reply.to.file.url,
+          );
+          editedMessage.reply.to.file.fileName = decrypt(
+            editedMessage.reply.to.file.fileName,
+          );
+          editedMessage.reply.to.file.fileCloudName = decrypt(
+            editedMessage.reply.to.file.fileCloudName,
+          );
+        }
+
+        group.members.forEach((memberId) => {
+          const memberSocketId = userSocketMap[memberId];
+
+          // Then emiting to each group member
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("messageEdited", {
+              editedMessage,
+              group,
+            });
+          }
+        });
+
+        const adminSocketId = userSocketMap[group.admin];
+
+        // And emiting to the admin
+        if (adminSocketId) {
+          io.to(adminSocketId).emit("messageEdited", { editedMessage, group });
+        }
+      } else {
+        const senderSocketId = userSocketMap[editedMessage.sender];
+        const receiverSocketId = userSocketMap[editedMessage.receiver];
+        editedMessage.content = decrypt(editedMessage.content);
+
+        if (
+          editedMessage?.reply?.isReply &&
+          editedMessage?.reply?.to?.messageType === "text"
+        ) {
+          editedMessage.reply.to.content = decrypt(
+            editedMessage.reply.to.content,
+          );
+        } else if (
+          editedMessage?.reply?.isReply &&
+          editedMessage?.reply?.to?.messageType === "file"
+        ) {
+          editedMessage.reply.to.file.url = decrypt(
+            editedMessage.reply.to.file.url,
+          );
+          editedMessage.reply.to.file.fileName = decrypt(
+            editedMessage.reply.to.file.fileName,
+          );
+          editedMessage.reply.to.file.fileCloudName = decrypt(
+            editedMessage.reply.to.file.fileCloudName,
+          );
+        }
+
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("messageEdited", { editedMessage });
+        }
+
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("messageEdited", { editedMessage });
+        }
       }
+    } catch (error) {
+      console.log("Error while handling message edited in the socket!");
+      console.log(error);
     }
   };
 
@@ -166,7 +282,18 @@ const setupSocket = (server) => {
   const sendAGroupMessage = async (message) => {
     const { groupId } = message;
 
-    const newMessage = new Message(message);
+    let encryptedMessage = { ...message };
+    if (message.messageType === "text") {
+      // Encrypting the text message content
+      encryptedMessage.content = encrypt(message.content);
+    } else if (message.messageType === "file") {
+      // Encrypting the file message's url, fileName, and fileCloudName
+      encryptedMessage.file.url = encrypt(message.file.url);
+      encryptedMessage.file.fileName = encrypt(message.file.fileName);
+      encryptedMessage.file.fileCloudName = encrypt(message.file.fileCloudName);
+    }
+
+    const newMessage = new Message(encryptedMessage);
     await newMessage.save();
 
     const messageData = await Message.findById(newMessage._id)
@@ -180,6 +307,31 @@ const setupSocket = (server) => {
         },
       })
       .exec();
+
+    if (messageData.messageType === "text") {
+      // Dencrypting the text message content
+      messageData.content = decrypt(messageData.content);
+
+      // Checking if the message is a reply
+      if (messageData?.reply?.to?.messageType === "text") {
+        // If reply to text message
+        messageData.reply.to.content = decrypt(messageData.reply.to.content);
+      } else if (messageData?.reply?.to?.messageType === "file") {
+        // If reply to file message
+        messageData.reply.to.file.url = decrypt(messageData.reply.to.file.url);
+        messageData.reply.to.file.fileName = decrypt(
+          messageData.reply.to.file.fileName,
+        );
+        messageData.reply.to.file.fileCloudName = decrypt(
+          messageData.reply.to.file.fileCloudName,
+        );
+      }
+    } else if (messageData.messageType === "file") {
+      // Decrypting file message data
+      messageData.file.url = decrypt(messageData.file.url);
+      messageData.file.fileName = decrypt(messageData.file.fileName);
+      messageData.file.fileCloudName = decrypt(messageData.file.fileCloudName);
+    }
 
     // adding message in the group's messages array
     await Group.findByIdAndUpdate(groupId, {
@@ -197,29 +349,31 @@ const setupSocket = (server) => {
     const groupIdStr = group._id.toString();
 
     if (group && group.members) {
-      for (const member of group.members) {
-        const memberSocketId = userSocketMap[member._id.toString()];
-        const receiver = await User.findById(member._id);
+      await Promise.all(
+        group.members.map(async (member) => {
+          const memberSocketId = userSocketMap[member._id.toString()];
+          const receiver = await User.findById(member._id, "fcmToken");
 
-        if (memberSocketId) {
-          io.to(memberSocketId).emit("receiveGroupMessage", groupMessage);
-        }
-        if (receiver?.fcmToken) {
-          await sendPushNotification(receiver.fcmToken, messageData);
-        }
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("receiveGroupMessage", groupMessage);
+          }
+          if (receiver?.fcmToken) {
+            await sendPushNotification(receiver.fcmToken, messageData);
+          }
 
-        const res = await User.updateOne(
-          { _id: member._id, "notifications.user": groupIdStr },
-          { $inc: { "notifications.$.count": 1 } }
-        );
-
-        if (res.matchedCount === 0) {
-          await User.updateOne(
-            { _id: member._id },
-            { $push: { notifications: { user: groupIdStr, count: 1 } } }
+          const res = await User.updateOne(
+            { _id: member._id, "notifications.user": groupIdStr },
+            { $inc: { "notifications.$.count": 1 } },
           );
-        }
-      }
+
+          if (res.matchedCount === 0) {
+            await User.updateOne(
+              { _id: member._id },
+              { $push: { notifications: { user: groupIdStr, count: 1 } } },
+            );
+          }
+        }),
+      );
 
       // Same for admin
       const adminSocketId = userSocketMap[group.admin._id.toString()];
@@ -234,13 +388,13 @@ const setupSocket = (server) => {
 
       const res = await User.updateOne(
         { _id: group.admin._id, "notifications.user": groupIdStr },
-        { $inc: { "notifications.$.count": 1 } }
+        { $inc: { "notifications.$.count": 1 } },
       );
 
       if (res.matchedCount === 0) {
         await User.updateOne(
           { _id: group.admin._id },
-          { $push: { notifications: { user: groupIdStr, count: 1 } } }
+          { $push: { notifications: { user: groupIdStr, count: 1 } } },
         );
       }
     }
@@ -295,7 +449,7 @@ const setupSocket = (server) => {
   const handleLeaveGroup = async ({ group, userId }) => {
     const user = await User.findById(userId);
     if (!user) {
-      console.log("User not found!");
+      console.log("User not found while leaving group!");
       return;
     }
 
@@ -376,17 +530,18 @@ const setupSocket = (server) => {
         messageType:
           callData.callType === "voice" ? "voice-call" : "video-call",
         accepted: false,
+        isGroupMessage: false,
       });
 
       const missedCall = await callMessage.save();
       const messageData = await Message.findById(missedCall._id)
         .populate(
           "sender",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         )
         .populate(
           "receiver",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         );
 
       const receiver = await User.findById(callData.receiverId);
@@ -403,7 +558,7 @@ const setupSocket = (server) => {
 
           // Add notification for receiver
           const existingNotification = receiver.notifications.find(
-            (notifier) => notifier.user === callData.callerId
+            (notifier) => notifier.user === callData.callerId,
           );
 
           if (existingNotification) {
@@ -430,15 +585,20 @@ const setupSocket = (server) => {
         io.to(receiverSocketId).emit("incomingCall", {
           ...callData,
           callId,
+          callMessageId: messageData._id,
         });
         if (receiver?.fcmToken) {
           const incomingCall = true;
           await sendPushNotification(
             receiver.fcmToken,
             messageData,
-            incomingCall
+            incomingCall,
           );
         }
+        // Send call message id to caller
+        io.to(callerSocketId).emit("callInitiated", {
+          callMessageId: messageData._id,
+        });
 
         // Set timeout for call (15 seconds)
         callTimeouts[callId] = setTimeout(async () => {
@@ -461,7 +621,7 @@ const setupSocket = (server) => {
             const receiver = await User.findById(callData.receiverId);
 
             const existingNotification = receiver.notifications.find(
-              (notifier) => notifier.user === callData.callerId
+              (notifier) => notifier.user === callData.callerId,
             );
 
             if (existingNotification) {
@@ -495,7 +655,7 @@ const setupSocket = (server) => {
         const receiver = await User.findById(callData.receiverId);
 
         const existingNotification = receiver.notifications.find(
-          (notifier) => notifier.user === callData.callerId
+          (notifier) => notifier.user === callData.callerId,
         );
 
         if (existingNotification) {
@@ -550,22 +710,14 @@ const setupSocket = (server) => {
       const callerSocketId = userSocketMap[data.callerId];
       const receiverSocketId = userSocketMap[data.declinerId];
       clearCallState(data.callId);
-      const callMessage = new Message({
-        sender: data.callerId,
-        receiver: data.declinerId,
-        isCall: true,
-        messageType: data.callType === "voice" ? "voice-call" : "video-call",
-        accepted: false,
-      });
-      const missedCall = await callMessage.save();
-      const messageData = await Message.findById(missedCall._id)
+      const messageData = await Message.findById(data.callMessageId)
         .populate(
           "sender",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         )
         .populate(
           "receiver",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         );
       if (callerSocketId) {
         io.to(callerSocketId).emit("callDeclined", data);
@@ -586,24 +738,18 @@ const setupSocket = (server) => {
       const callerSocketId = userSocketMap[data.caller];
       const receiverSocketId =
         userSocketMap[data.isInitiator ? data.remoteUserId : data.userId];
-
-      const callMessage = new Message({
-        sender: data.caller,
-        receiver: data.isInitiator ? data.remoteUserId : data.userId,
-        isCall: true,
-        messageType: data.callType === "voice" ? "voice-call" : "video-call",
-        accepted: data.wasAccepted,
-        callDuration: data.duration,
-      });
+      const callMessage = await Message.findById(data.callMessageId);
+      callMessage.callDuration = data.duration;
+      callMessage.accepted = data.wasAccepted;
       const missedCall = await callMessage.save();
       const messageData = await Message.findById(missedCall._id)
         .populate(
           "sender",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         )
         .populate(
           "receiver",
-          "id email firstName lastName image color verified notifications"
+          "id email firstName lastName image color verified notifications",
         );
 
       if (remoteSocketId) {
@@ -619,11 +765,11 @@ const setupSocket = (server) => {
       // Add notification for receiver if the call was not accepted
       if (!data.wasAccepted) {
         const receiver = await User.findById(
-          data.isInitiator ? data.remoteUserId : data.userId
+          data.isInitiator ? data.remoteUserId : data.userId,
         );
 
         const existingNotification = receiver.notifications.find(
-          (notifier) => notifier.user === data.caller
+          (notifier) => notifier.user === data.caller,
         );
 
         if (existingNotification) {

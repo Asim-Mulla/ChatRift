@@ -41,7 +41,7 @@ const EditMessage = ({ message }) => {
         inputRef.current.focus();
         inputRef.current.setSelectionRange(
           inputRef.current.value.length,
-          inputRef.current.value.length
+          inputRef.current.value.length,
         );
       }
     }, 100);
@@ -67,23 +67,15 @@ const EditMessage = ({ message }) => {
     setIsUpdating(true);
 
     try {
-      toast.promise(editMessage(message, editedContent), {
+      toast.promise(editMessage(message._id, editedContent), {
         loading: "Editing message...",
         success: (res) => {
           if (res.status === 200) {
             if (socket) {
               socket.emit("messageEdited", {
                 editedMessage: res.data.editedMessage,
-                group:
-                  selectedChatType === "Group"
-                    ? {
-                        members: selectedChatData.members.map(
-                          (member) => member?._id
-                        ),
-                        admin: selectedChatData.admin,
-                        groupId: selectedChatData._id,
-                      }
-                    : null,
+                groupId:
+                  selectedChatType === "Group" ? selectedChatData._id : null,
               });
             }
 

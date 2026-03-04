@@ -5,6 +5,10 @@ const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
 export const generateAgoraToken = async (req, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { channelName, uid, role = "publisher" } = req.body;
 
     if (!channelName) {
@@ -22,8 +26,7 @@ export const generateAgoraToken = async (req, res) => {
       role === "publisher" ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
 
     // Token expiration time (24 hours from now)
-    const expirationTimeInSeconds =
-      Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    const expirationTimeInSeconds = Math.floor(Date.now() / 1000) + 60 * 60;
 
     // Generate the token
     const token = RtcTokenBuilder.buildTokenWithUid(
@@ -32,7 +35,7 @@ export const generateAgoraToken = async (req, res) => {
       channelName,
       uid || 0, // Use 0 for string-based UIDs
       agoraRole,
-      expirationTimeInSeconds
+      expirationTimeInSeconds,
     );
 
     res.status(200).json({

@@ -46,7 +46,7 @@ export const SocketProvider = ({ children }) => {
           } else {
             if (!message.accepted && message.receiver._id === userInfo.id) {
               const notificationsExists = userNotifications.find(
-                (notifier) => notifier.user === message.sender._id
+                (notifier) => notifier.user === message.sender._id,
               );
 
               let updatedNotifications = null;
@@ -68,7 +68,7 @@ export const SocketProvider = ({ children }) => {
               setUserNotifications(updatedNotifications);
               if (message.receiver._id === userInfo.id) {
                 toast.info(
-                  `Missed call from ${message.sender.firstName} ${message.sender.lastName}`
+                  `Missed call from ${message.sender.firstName} ${message.sender.lastName}`,
                 );
               }
             }
@@ -83,7 +83,7 @@ export const SocketProvider = ({ children }) => {
             addMessage(message);
           } else {
             const notificationsExists = userNotifications.find(
-              (notifier) => notifier.user === message.sender._id
+              (notifier) => notifier.user === message.sender._id,
             );
 
             let updatedNotifications = null;
@@ -103,7 +103,7 @@ export const SocketProvider = ({ children }) => {
             }
             setUserNotifications(updatedNotifications);
             toast.info(
-              `New message from ${message.sender.firstName} ${message.sender.lastName}`
+              `New message from ${message.sender.firstName} ${message.sender.lastName}`,
             );
           }
         }
@@ -142,7 +142,7 @@ export const SocketProvider = ({ children }) => {
         const updatedDMContacts = DMContacts.map((contact) => {
           if (contact._id === notifier) {
             const contactsNewNotifications = contact?.notifications.filter(
-              (n) => n.user !== userInfo.id
+              (n) => n.user !== userInfo.id,
             );
             return { ...contact, notifications: contactsNewNotifications };
           } else {
@@ -162,7 +162,7 @@ export const SocketProvider = ({ children }) => {
         if (
           selectedChatType === "Group" &&
           group &&
-          selectedChatData?._id === group.groupId
+          selectedChatData?._id === group._id
         ) {
           const updatedMessages = selectedChatMessages.map((message) => {
             if (message._id === editedMessage._id) {
@@ -207,7 +207,7 @@ export const SocketProvider = ({ children }) => {
           addMessage(message);
         } else {
           const notificationsExists = userNotifications.find(
-            (notifier) => notifier.user === message.groupId
+            (notifier) => notifier.user === message.groupId,
           );
 
           let updatedNotifications = null;
@@ -256,7 +256,7 @@ export const SocketProvider = ({ children }) => {
         const { updateGroup, groups, addGroup } = useAppStore.getState();
 
         const foundGroup = groups.find(
-          (currGroup) => currGroup._id === group._id
+          (currGroup) => currGroup._id === group._id,
         );
 
         if (foundGroup?._id) {

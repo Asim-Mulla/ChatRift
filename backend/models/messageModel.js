@@ -20,15 +20,23 @@ const messageSchema = new mongoose.Schema(
       enum: ["text", "file", "voice-call", "video-call"],
       required: true,
     },
+    isGroupMessage: {
+      type: Boolean,
+    },
     accepted: {
       type: Boolean,
-      default: false,
+      required: function () {
+        return ["voice-call", "video-call"].includes(this.messageType);
+      },
     },
     callDuration: {
       type: Number,
       min: 0,
       required: function () {
-        return this.accepted === true;
+        return (
+          ["voice-call", "video-call"].includes(this.messageType) &&
+          this.accepted === true
+        );
       },
     },
     content: {
@@ -40,16 +48,16 @@ const messageSchema = new mongoose.Schema(
     edited: {
       type: Boolean,
       default: false,
+      required: function () {
+        return this.messageType === "text";
+      },
     },
     file: {
       type: {
-        url: { type: String },
-        fileName: { type: String },
-        fileCloudName: { type: String },
-        size: { type: Number },
-      },
-      required: function () {
-        return this.messageType === "file";
+        url: String,
+        fileName: String,
+        fileCloudName: String,
+        size: Number,
       },
     },
     reply: {
@@ -61,9 +69,13 @@ const messageSchema = new mongoose.Schema(
         },
       },
     },
+    deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+messageSchema.index({ sender: 1, createdAt: -1 });
+messageSchema.index({ receiver: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 

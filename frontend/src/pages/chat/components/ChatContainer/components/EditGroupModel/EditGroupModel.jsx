@@ -52,7 +52,7 @@ const EditGroupModel = () => {
 
     const groupMembersNotChanged = isEqual(
       sortedSelectedContacts,
-      sortedOriginalContacts
+      sortedOriginalContacts,
     );
 
     // Nothing changed
@@ -70,7 +70,7 @@ const EditGroupModel = () => {
         await toast.promise(editGroupName(groupName, originalGroupName), {
           loading: "Changing group name...",
           success: (res) => {
-            if (res.status === 201) {
+            if (res.status === 200) {
               const group = res.data.group;
               updateGroup(group);
 
@@ -102,7 +102,7 @@ const EditGroupModel = () => {
           {
             loading: "Updating group members...",
             success: (res) => {
-              if (res.status === 201) {
+              if (res.status === 200) {
                 const group = res.data.group;
                 const removedMembers = res.data.removedMembers;
                 updateGroup(group);
@@ -126,7 +126,7 @@ const EditGroupModel = () => {
               console.error(err);
               return err?.response?.data || "Failed to update group members";
             },
-          }
+          },
         );
       }
     } catch (error) {
@@ -159,7 +159,7 @@ const EditGroupModel = () => {
 
     const groupMembersNotChanged = isEqual(
       sortedSelectedContacts,
-      sortedOriginalContacts
+      sortedOriginalContacts,
     );
     if (groupNameChanged || !groupMembersNotChanged) {
       setIsEdited(true);

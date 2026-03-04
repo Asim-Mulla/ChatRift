@@ -179,7 +179,11 @@ const Auth = () => {
 
   const handleSignup = async () => {
     if (!otpSent) {
-      await handleGetOtp();
+      // Render is not allowing SMTP due to which we cannot use Nodemailer in the backend for sending otp email.
+      return toast.info(
+        "Email signup is temporarily unavailable. Please continue with Google sign-in.",
+      );
+      // await handleGetOtp();
     } else {
       await handleVerifyOtpAndSignup();
     }

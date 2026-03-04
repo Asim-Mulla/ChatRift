@@ -69,7 +69,7 @@ const ReplyMessage = ({ message }) => {
           isReply: true,
           to: message._id,
         },
-        file: null,
+        isGroupMessage: false,
       });
 
       socket.emit("isTypingInDM", {
@@ -83,7 +83,7 @@ const ReplyMessage = ({ message }) => {
       const updatedDMContacts = DMContacts.map((contact) => {
         if (contact._id === selectedChatData._id) {
           const notifications = contact.notifications?.find(
-            (notifier) => notifier.user === userInfo.id
+            (notifier) => notifier.user === userInfo.id,
           );
           let updatedNotifications = null;
           if (notifications) {
@@ -122,6 +122,7 @@ const ReplyMessage = ({ message }) => {
         },
         file: null,
         groupId: selectedChatData._id,
+        isGroupMessage: true,
       });
 
       socket.emit("isTypingInGroup", {
@@ -213,8 +214,8 @@ const ReplyMessage = ({ message }) => {
                   {selectedChatType === "Group"
                     ? `${message.sender?.firstName} ${message.sender?.lastName}`
                     : isOwnMessage
-                    ? "You"
-                    : `${selectedChatData?.firstName} ${selectedChatData.lastName}`}
+                      ? "You"
+                      : `${selectedChatData?.firstName} ${selectedChatData.lastName}`}
                 </span>
               </div>
               <div className="text-sm text-gray-400 mt-1">

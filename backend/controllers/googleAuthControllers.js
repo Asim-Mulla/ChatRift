@@ -1,15 +1,19 @@
+import "dotenv/config";
 import oauth2client from "../config/googleAuth.js";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import User from "../models/userModel.js";
-import "dotenv/config";
+import { sendTelegramNotification } from "../utils/sendTelegramNotification.js";
 
 const maxAge = 24 * 60 * 60 * 1000;
 const isProduction = process.env.NODE_ENV === "production";
 
 const createToken = (email, userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET not defined");
+  }
   const secret = process.env.JWT_SECRET;
-  const token = jwt.sign({ email, userId }, secret, { expiresIn: maxAge });
+  const token = jwt.sign({ email, userId }, secret, { expiresIn: "1d" });
   return token;
 };
 
@@ -21,7 +25,7 @@ const googleLogin = async (req, res) => {
     oauth2client.setCredentials(googleRes.tokens);
 
     const userRes = await axios.get(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`,
     );
 
     const { email } = userRes.data;
@@ -34,34 +38,11 @@ const googleLogin = async (req, res) => {
       await user.save();
 
       // Notifying on telegram
-      const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      const chatId = process.env.TELEGRAM_CHAT_ID;
+      const message = `🔔 New user signed up 🔔
+User email :- ${user.email},
+`;
 
-      if (botToken && chatId) {
-        const sendTelegramNotification = async () => {
-          const message = `! New user signed up !
-    User email :- ${user.email},
-    `;
-
-          const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
-            message
-          )}`;
-
-          try {
-            const response = await fetch(url);
-            const result = await response.json();
-            if (result.ok) {
-              // console.log("Notification sent successfully!");
-            } else {
-              console.error("Failed to send notification:", result);
-            }
-          } catch (error) {
-            console.error("Error sending message:", error);
-          }
-        };
-
-        sendTelegramNotification();
-      }
+      sendTelegramNotification(message);
 
       const token = createToken(email, user._id);
 
@@ -82,12 +63,7 @@ const googleLogin = async (req, res) => {
         });
     } else {
       // Notifying on telegram
-      const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      const chatId = process.env.TELEGRAM_CHAT_ID;
-
-      if (botToken && chatId) {
-        const sendTelegramNotification = async () => {
-          const message = `! New user logged in !
+      const message = `🔔 New user logged in 🔔
           ${
             user.firstName
               ? `User name :- ${user.firstName} ${user.lastName}`
@@ -96,25 +72,7 @@ const googleLogin = async (req, res) => {
             User email :- ${user.email},
             `;
 
-          const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
-            message
-          )}`;
-
-          try {
-            const response = await fetch(url);
-            const result = await response.json();
-            if (result.ok) {
-              // console.log("Notification sent successfully!");
-            } else {
-              console.error("Failed to send notification:", result);
-            }
-          } catch (error) {
-            console.error("Error sending message:", error);
-          }
-        };
-
-        sendTelegramNotification();
-      }
+      sendTelegramNotification(message);
 
       const token = createToken(email, user._id);
 

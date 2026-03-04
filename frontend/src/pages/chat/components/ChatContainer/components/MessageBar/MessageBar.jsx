@@ -76,7 +76,7 @@ const MessageBar = () => {
         receiver: selectedChatData._id,
         content: message,
         messageType: "text",
-        file: null,
+        isGroupMessage: false,
       });
       socket.emit("isTypingInDM", {
         isTyping: false,
@@ -89,7 +89,7 @@ const MessageBar = () => {
       const updatedDMContacts = DMContacts.map((contact) => {
         if (contact._id === selectedChatData._id) {
           const notifications = contact.notifications?.find(
-            (notifier) => notifier.user === userInfo.id
+            (notifier) => notifier.user === userInfo.id,
           );
           let updatedNotifications = null;
           if (notifications) {
@@ -119,8 +119,8 @@ const MessageBar = () => {
         sender: userInfo.id,
         content: message,
         messageType: "text",
-        file: null,
         groupId: selectedChatData._id,
+        isGroupMessage: true,
       });
       socket.emit("isTypingInGroup", {
         isTyping: false,
@@ -172,8 +172,8 @@ const MessageBar = () => {
               socket.emit("sendMessage", {
                 sender: userInfo.id,
                 receiver: selectedChatData._id,
-                content: null,
                 messageType: "file",
+                isGroupMessage: false,
                 file: {
                   url: res.data.filePath,
                   fileName: res.data.fileName,
@@ -187,7 +187,7 @@ const MessageBar = () => {
               const updatedDMContacts = DMContacts.map((contact) => {
                 if (contact._id === selectedChatData._id) {
                   const notifications = contact.notifications?.find(
-                    (notifier) => notifier.user === userInfo.id
+                    (notifier) => notifier.user === userInfo.id,
                   );
                   let updatedNotifications = null;
                   if (notifications) {
@@ -198,7 +198,7 @@ const MessageBar = () => {
                         } else {
                           return notifier;
                         }
-                      }
+                      },
                     );
                   } else {
                     updatedNotifications = [{ user: userInfo.id, count: 1 }];
@@ -211,7 +211,6 @@ const MessageBar = () => {
             } else if (selectedChatType === "Group") {
               socket.emit("sendGroupMessage", {
                 sender: userInfo.id,
-                content: null,
                 messageType: "file",
                 file: {
                   url: res.data.filePath,
@@ -220,6 +219,7 @@ const MessageBar = () => {
                   fileCloudName: res.data.fileCloudName,
                 },
                 groupId: selectedChatData._id,
+                isGroupMessage: true,
               });
             }
             return "File uploaded successfully!";
