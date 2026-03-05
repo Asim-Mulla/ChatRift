@@ -25,7 +25,9 @@ A modern, feature-rich real-time chat application with voice and video calling, 
 
 ## Project Overview
 
-ChatRift provides a complete communication platform with user authentication, contact management, real-time messaging, voice/video calling, file sharing capabilities, and group chat functionality. The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.Push notifications are implemented using Firebase Cloud Messaging and Firebase Admin SDK, allowing users to receive instant alerts for new messages, missed calls, and incoming calls even when the app is closed or running in the background.
+ChatRift provides a complete communication platform with user authentication, contact management, real-time messaging, voice/video calling, file sharing capabilities, and group chat functionality.<br />
+To enhance security, ChatRift implements **server-side encryption for message content and file metadata** using AES-256-CBC. All text messages and sensitive file information (such as file URLs and cloud identifiers) are encrypted before being stored in the database and securely decrypted during retrieval. A unique initialization vector (IV) is generated for each message to ensure strong cryptographic protection.<br />
+The application features a clean, modern interface built with shadcn/ui components and Tailwind CSS, ensuring a responsive and intuitive user experience.Push notifications are implemented using Firebase Cloud Messaging and Firebase Admin SDK, allowing users to receive instant alerts for new messages, missed calls, and incoming calls even when the app is closed or running in the background.
 
 ## UI Previews
 
@@ -50,14 +52,12 @@ ChatRift provides a complete communication platform with user authentication, co
 ### Core Messaging Features
 
 1. **Real-Time Communication**
-
    - Instant messaging with Socket.IO
    - Live typing indicators for both DMs and groups
    - Real-time message delivery
    - Online/offline status indicators
 
 2. **Rich Message Support**
-
    - Text messages with emoji support
    - Comprehensive emoji picker with categories
    - File sharing (images, PDFs, documents, ZIP files, audio, video, and more)
@@ -72,7 +72,6 @@ ChatRift provides a complete communication platform with user authentication, co
 ### Direct Messaging (DM)
 
 1. **Private Conversations**
-
    - One-on-one messaging
    - Message history persistence
    - Typing indicators
@@ -80,20 +79,18 @@ ChatRift provides a complete communication platform with user authentication, co
    - Reply to messages
 
 2. **Message Control**
-   - Sender can delete their own messages
+   - Message edit, delete-for-me, and delete-for-everyone for own messages
    - Real-time message deletion
 
 ### Group Chat Features
 
 1. **Group Creation & Management**
-
    - Create groups with multiple members
    - Add/remove members (admin only)
    - Edit group names (admin only)
    - Leave group functionality for members
 
 2. **Advanced Group Controls**
-
    - Admin privileges for group management
    - Members can delete their own messages
    - Admins can delete any message in the group
@@ -108,7 +105,6 @@ ChatRift provides a complete communication platform with user authentication, co
 ### User Experience
 
 1. **Authentication & Security**
-
    - Secure user registration and login
    - JWT-based authentication
    - Google OAuth 2.0 authentication
@@ -116,13 +112,11 @@ ChatRift provides a complete communication platform with user authentication, co
    - Session management
 
 2. **Profile Customization**
-
    - Editable profile pictures
    - First name and last name editing
    - Profile color themes
 
 3. **Modern UI/UX**
-
    - Clean, dark-themed interface
    - Responsive design for all devices
    - Smooth animations and transitions
@@ -140,17 +134,14 @@ ChatRift provides a complete communication platform with user authentication, co
 ### Voice & Video Calling
 
 1. **One-to-One Voice Calls**
-
    - Initiate or receive voice calls with contacts.
    - Real-time ringing, call timer, mute/unmute functionality.
 
 2. **One-to-One Video Calls**
-
    - High-quality video calling with the ability to toggle the camera on/off.
    - Picture-in-picture local video preview.
 
 3. **Call Notifications**
-
    - Incoming call modal with user details.
    - Missed call notifications if the call is not answered.
 
@@ -287,6 +278,8 @@ EMAIL_PASSWORD=your_emails_app_password
 # Voice and video call
 AGORA_APP_ID=your_agora_app_id
 AGORA_APP_CERTIFICATE=your_agora_app_certificate
+
+MESSAGE_SECRET_KEY=your_secret_message_encryption_and_decryption_key
 ```
 
 4. Start the server
@@ -323,6 +316,7 @@ npm run dev
 - `GET /api/message/get-messages/:otherUserId` - Get chat messages
 - `POST /api/message/upload-file` - Send image or file in a message
 - `DELETE /api/message/delete` - Delete message
+- `DELETE /api/message/delete-for-me` - Delete message for user
 - `PATCH /api/message/edit` - Edit message
 
 ### Groups
@@ -395,6 +389,22 @@ npm run dev
 - Input validation
 - File upload restrictions
 
+## Message & File Encryption
+
+ChatRift encrypts sensitive message data before storing it in the database.
+
+- Algorithm: AES-256-CBC
+- Per-message random IV (16 bytes)
+- Encrypted fields:
+  - Message content
+  - File URL
+  - File name
+  - Cloudinary public ID
+- Secure decryption during retrieval
+- Graceful failure handling to prevent server crashes
+
+This ensures that even if the database is compromised, raw message content is not stored in plaintext.
+
 ## Contributing
 
 1. Fork the repository
@@ -416,6 +426,9 @@ npm run dev
 - ✅ Message reply
 - ✅ One-to-one voice and video calls
 - ✅ Web push notifications
+- ✅ Message and file content encryption
+- ✅ delete-for-me functionality
+- ⬜️ E2E Encryption
 
 ## Author
 

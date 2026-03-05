@@ -26,7 +26,7 @@ export const deleteMessage = (messageId, groupData) => {
 };
 
 export const deleteMessageForMe = (messageId, groupData) => {
-  return api.delete("/api/message/deleteForMe", {
+  return api.delete("/api/message/delete-for-me", {
     data: { messageId, groupData },
     withCredentials: true,
   });

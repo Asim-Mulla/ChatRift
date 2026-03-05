@@ -70,7 +70,7 @@ messageRoutes.post(
   uploadFile,
 );
 messageRoutes.delete("/delete", verifyToken, deleteMessage);
-messageRoutes.delete("/deleteForMe", verifyToken, deleteMessageForUser);
+messageRoutes.delete("/delete-for-me", verifyToken, deleteMessageForUser);
 messageRoutes.patch("/edit", verifyToken, editMessage);
 
 // Error handling middleware for multer
