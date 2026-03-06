@@ -15,6 +15,8 @@ import { useState } from "react";
 import { MdOutlineDelete } from "react-icons/md";
 import { toast } from "sonner";
 
+const DELETE_FOR_EVERYONE_TIME = 24 * 60 * 60 * 1000;
+
 const DeleteMessageDialog = ({ message, isOwnMessage, isAdmin = false }) => {
   const [openDeleteMessageDialog, setOpenDeleteMessageDialog] = useState(false);
   const [deletingMessages, setDeletingMessages] = useState(new Set());
@@ -113,10 +115,16 @@ const DeleteMessageDialog = ({ message, isOwnMessage, isAdmin = false }) => {
     }
   };
 
+  const messageTime = new Date(message.createdAt).getTime();
+  const currentTime = Date.now();
+  const isWithinDeleteForEveryoneWindow =
+    currentTime - messageTime <= DELETE_FOR_EVERYONE_TIME;
+
   const canDeleteForEveryone =
     (isOwnMessage || isAdmin) &&
     message.messageType !== "voice-call" &&
-    message.messageType !== "video-call";
+    message.messageType !== "video-call" &&
+    isWithinDeleteForEveryoneWindow;
 
   return (
     <div>

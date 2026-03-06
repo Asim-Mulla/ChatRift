@@ -315,9 +315,9 @@ npm run dev
 
 - `GET /api/message/get-messages/:otherUserId` - Get chat messages
 - `POST /api/message/upload-file` - Send image or file in a message
-- `DELETE /api/message/delete` - Delete message
+- `DELETE /api/message/delete` - Delete message (only within 24 hours of sending)
 - `DELETE /api/message/delete-for-me` - Delete message for user
-- `PATCH /api/message/edit` - Edit message
+- `PATCH /api/message/edit` - Edit message (only within 15 mins of sending)
 
 ### Groups
 

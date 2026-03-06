@@ -92,7 +92,7 @@ const checkIfImage = (filePath) => {
   return imageRegex.test(filePath);
 };
 
-const FIFTEEN_MINUTES = 15 * 60 * 1000;
+const EDIT_TIME = 15 * 60 * 1000;
 
 const MessageContainer = () => {
   const {
@@ -398,7 +398,7 @@ const MessageContainer = () => {
   ) => {
     const messageTime = new Date(message.createdAt).getTime();
     const currentTime = Date.now();
-    const isWithinEditWindow = currentTime - messageTime <= FIFTEEN_MINUTES;
+    const isWithinEditWindow = currentTime - messageTime <= EDIT_TIME;
 
     const isOwnMessage = message?.sender === userInfo?.id;
     const againSameSender =
@@ -712,7 +712,7 @@ const MessageContainer = () => {
   const renderGroupMessages = (message, messageIndex, messagesInGroup) => {
     const messageTime = new Date(message.createdAt).getTime();
     const currentTime = Date.now();
-    const isWithinEditWindow = currentTime - messageTime <= FIFTEEN_MINUTES;
+    const isWithinEditWindow = currentTime - messageTime <= EDIT_TIME;
     const isOwnMessage = message.sender._id === userInfo.id;
     const againSameSender =
       messageIndex > 0 &&

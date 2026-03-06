@@ -112,6 +112,20 @@ export const deleteMessage = async (req, res) => {
       return res.status(404).send("Message not found");
     }
 
+    const DELETE_FOR_EVERYONE_TIME = 24 * 60 * 60 * 1000;
+    const messageTime = new Date(message.createdAt).getTime();
+    const currentTime = Date.now();
+    const isWithinDeleteForEveryoneWindow =
+      currentTime - messageTime <= DELETE_FOR_EVERYONE_TIME;
+
+    if (!isWithinDeleteForEveryoneWindow) {
+      return res
+        .status(400)
+        .send(
+          "You can only delete messages for everyone within 24 hours of sending.",
+        );
+    }
+
     if (group?._id) {
       if (message.sender.toString() !== userId && !isGroupAdmin) {
         return res.status(403).send("You can only delete your own messages!");
@@ -305,10 +319,10 @@ export const editMessage = async (req, res) => {
 
     const isGroupMessage = message.isGroupMessage;
 
-    const TWENTY_MINUTES = 20 * 60 * 1000;
+    const EDIT_TIME = 20 * 60 * 1000;
     const messageTime = new Date(message.createdAt).getTime();
     const currentTime = Date.now();
-    const isWithinEditWindow = currentTime - messageTime <= TWENTY_MINUTES;
+    const isWithinEditWindow = currentTime - messageTime <= EDIT_TIME;
 
     if (!isWithinEditWindow) {
       return res
