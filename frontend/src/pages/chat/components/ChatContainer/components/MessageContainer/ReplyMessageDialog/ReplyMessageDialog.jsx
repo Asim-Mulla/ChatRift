@@ -16,6 +16,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const isMobile =
+  window.innerWidth <= 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
 const ReplyMessage = ({ message }) => {
   const [openReplyDialog, setOpenReplyDialog] = useState(false);
   const [replyContent, setReplyContent] = useState("");
@@ -156,7 +159,7 @@ const ReplyMessage = ({ message }) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (!isMobile && e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendReply();
     } else if (e.key === "Escape") {

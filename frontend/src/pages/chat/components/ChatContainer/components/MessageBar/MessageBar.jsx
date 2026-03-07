@@ -9,6 +9,9 @@ import { RiEmojiStickerLine } from "react-icons/ri";
 import { toast } from "sonner";
 import VoiceMessage from "./VoiceMessage/VoiceMessage";
 
+const isMobile =
+  window.innerWidth <= 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
 const MessageBar = () => {
   const socket = useSocket();
   const [message, setMessage] = useState("");
@@ -253,9 +256,8 @@ const MessageBar = () => {
     }
   };
 
-  // Handle Enter key press
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (!isMobile && e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }

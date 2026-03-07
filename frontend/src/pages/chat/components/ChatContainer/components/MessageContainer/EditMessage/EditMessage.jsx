@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { editMessage } from "@/services/messageServices";
 
+const isMobile =
+  window.innerWidth <= 768 || /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
 const EditMessage = ({ message }) => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
@@ -119,7 +122,7 @@ const EditMessage = ({ message }) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (!isMobile && e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit();
     } else if (e.key === "Escape") {
