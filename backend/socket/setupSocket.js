@@ -77,10 +77,14 @@ const setupSocket = (server) => {
 
     let encryptedMessage = null;
     if (message.messageType === "text") {
+      if (message.content.trim().length >= 2000) {
+        return;
+      }
+
       // Encrypting the text message content
       encryptedMessage = {
         ...message,
-        content: encrypt(message.content),
+        content: encrypt(message.content.trim()),
       };
     } else if (message.messageType === "file") {
       // Encrypting the file message's url, fileName, and fileCloudName
@@ -284,8 +288,12 @@ const setupSocket = (server) => {
 
     let encryptedMessage = { ...message };
     if (message.messageType === "text") {
+      if (message.content.trim().length >= 2000) {
+        return;
+      }
+
       // Encrypting the text message content
-      encryptedMessage.content = encrypt(message.content);
+      encryptedMessage.content = encrypt(message.content.trim());
     } else if (message.messageType === "file") {
       // Encrypting the file message's url, fileName, and fileCloudName
       encryptedMessage.file.url = encrypt(message.file.url);

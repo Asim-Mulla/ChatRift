@@ -60,14 +60,20 @@ const EditMessage = ({ message }) => {
     }
 
     if (editedContent.trim() === message.content) {
+      toast.error("No changes made in the message");
       setOpenEditDialog(false);
+      return;
+    }
+
+    if (editedContent.trim().length >= 2000) {
+      toast.info("Message cannot exceed 2000 characters.");
       return;
     }
 
     setIsUpdating(true);
 
     try {
-      toast.promise(editMessage(message._id, editedContent), {
+      toast.promise(editMessage(message._id, editedContent.trim()), {
         loading: "Editing message...",
         success: (res) => {
           if (res.status === 200) {
@@ -121,6 +127,11 @@ const EditMessage = ({ message }) => {
     }
   };
 
+  const autoResize = (el) => {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+
   useEffect(() => {
     if (openEditDialog) {
       document.addEventListener("mousedown", handleCloseEmojiPicker);
@@ -158,22 +169,27 @@ const EditMessage = ({ message }) => {
 
           <div className="py-4">
             {/* Input with emoji picker */}
-            <div className="flex bg-[#2a2b33] rounded items-center gap-2 pr-2 relative">
-              <input
+            <div className="flex bg-[#2a2b33] rounded items-end gap-2 relative">
+              <textarea
                 ref={inputRef}
-                type="text"
-                className="flex-1 p-3 bg-transparent rounded focus:border-none focus:outline-none text-sm min-w-0"
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isUpdating}
+                className="max-h-[125px] flex-1 p-3 bg-transparent rounded focus:border-none focus:outline-none text-sm min-w-0 resize-none text-input-scrollbar"
                 placeholder="Edit your message..."
+                value={editedContent}
+                onChange={(e) => {
+                  setEditedContent(e.target.value);
+                  autoResize(e.target);
+                }}
+                onKeyDown={handleKeyPress}
+                onInput={(e) => autoResize(e.target)}
+                rows={1}
+                maxLength={2000}
+                disabled={isUpdating}
               />
 
               {/* Emoji picker button */}
               <div className="relative">
                 <button
-                  className="text-neutral-500 hover:text-white transition-colors p-1"
+                  className="text-neutral-500 hover:text-white transition-colors p-3"
                   onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
                   disabled={isUpdating}
                   type="button"

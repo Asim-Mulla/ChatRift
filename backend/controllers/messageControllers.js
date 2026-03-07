@@ -303,6 +303,10 @@ export const editMessage = async (req, res) => {
     const { messageId, editedContent } = req.body;
     const { userId } = req;
 
+    if (editedContent.trim().length >= 2000) {
+      return res.status(400).send("Message cannot exceed 2000 characters");
+    }
+
     if (!messageId) {
       return res.status(400).send("Message id is required");
     }
@@ -342,7 +346,7 @@ export const editMessage = async (req, res) => {
     if (isGroupMessage) {
       editedMessage = await Message.findByIdAndUpdate(
         message._id,
-        { content: encrypt(editedContent), edited: true },
+        { content: encrypt(editedContent.trim()), edited: true },
         { new: true },
       )
         .populate("sender", "_id firstName lastName email color image verified")
@@ -356,7 +360,7 @@ export const editMessage = async (req, res) => {
     } else {
       editedMessage = await Message.findByIdAndUpdate(
         message._id,
-        { content: encrypt(editedContent), edited: true },
+        { content: encrypt(editedContent.trim()), edited: true },
         { new: true },
       ).populate({
         path: "reply.to",

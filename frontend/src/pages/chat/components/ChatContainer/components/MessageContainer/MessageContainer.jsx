@@ -474,7 +474,7 @@ const MessageContainer = () => {
                               ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
                               : "this message was deleted"}
                         </span>
-                        <span className="text-sm">
+                        <span className="text-sm whitespace-pre-wrap break-words">
                           {message?.reply?.to?.messageType === "text" ? (
                             message?.reply?.to?.content
                           ) : checkIfImage(message?.reply?.to?.file?.url) ? (
@@ -498,7 +498,9 @@ const MessageContainer = () => {
                       ) : null}
                     </div>
                   )}
-                  <span className="text-start">{message?.content}</span>
+                  <span className="text-start whitespace-pre-wrap break-words">
+                    {message?.content}
+                  </span>
                 </div>
                 <DeleteMessageDialog
                   message={message}
@@ -828,7 +830,7 @@ const MessageContainer = () => {
                               ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
                               : "this message was deleted"}
                         </span>
-                        <span className="text-sm">
+                        <span className="text-sm whitespace-pre-wrap break-words">
                           {message?.reply?.to?.messageType === "text" ? (
                             message?.reply?.to?.content
                           ) : checkIfImage(message?.reply?.to?.file?.url) ? (
@@ -852,7 +854,9 @@ const MessageContainer = () => {
                       ) : null}
                     </div>
                   )}
-                  <span className="text-start">{message?.content}</span>
+                  <span className="text-start whitespace-pre-wrap break-words">
+                    {message?.content}
+                  </span>
                 </div>
                 <DeleteMessageDialog
                   message={message}
@@ -978,11 +982,7 @@ const MessageContainer = () => {
     );
   };
 
-  if (
-    !selectedChatMessages.length &&
-    // selectedChatType === "Group" &&
-    !isFetchingMessages
-  ) {
+  if (!selectedChatMessages.length && !isFetchingMessages) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-opacity-80 text-white flex flex-col justify-center items-center text-center gap-2 text-2xl lg:text-3xl">

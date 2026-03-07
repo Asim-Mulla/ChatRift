@@ -59,11 +59,16 @@ const ReplyMessage = ({ message }) => {
       return;
     }
 
+    if (replyContent.trim().length >= 2000) {
+      toast.info("Message cannot exceed 2000 characters.");
+      return;
+    }
+
     if (selectedChatType === "Contact") {
       socket.emit("sendMessage", {
         sender: userInfo.id,
         receiver: selectedChatData._id,
-        content: replyContent,
+        content: replyContent.trim(),
         messageType: "text",
         reply: {
           isReply: true,
@@ -114,7 +119,7 @@ const ReplyMessage = ({ message }) => {
 
       socket.emit("sendGroupMessage", {
         sender: userInfo.id,
-        content: replyContent,
+        content: replyContent.trim(),
         messageType: "text",
         reply: {
           isReply: true,
@@ -157,6 +162,11 @@ const ReplyMessage = ({ message }) => {
     } else if (e.key === "Escape") {
       handleCloseReply();
     }
+  };
+
+  const autoResize = (el) => {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
   };
 
   useEffect(() => {
@@ -218,28 +228,33 @@ const ReplyMessage = ({ message }) => {
                       : `${selectedChatData?.firstName} ${selectedChatData.lastName}`}
                 </span>
               </div>
-              <div className="text-sm text-gray-400 mt-1">
+              <div className="max-h-[100px] text-sm text-gray-400 mt-1 whitespace-pre-wrap break-words overflow-auto text-input-scrollbar">
                 {getMessagePreview()}
               </div>
             </div>
 
             {/* Reply input with emoji picker */}
-            <div className="flex bg-[#2a2b33] rounded items-center gap-2 pr-2 relative">
-              <input
+            <div className="flex bg-[#2a2b33] rounded items-end gap-2 relative">
+              <textarea
                 ref={inputRef}
-                type="text"
-                className="flex-1 p-3 bg-transparent rounded focus:border-none focus:outline-none text-sm min-w-0"
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isReplying}
+                className="max-h-[125px] flex-1 p-3 bg-transparent rounded focus:border-none focus:outline-none text-sm min-w-0 resize-none text-input-scrollbar"
                 placeholder="Type your reply..."
+                value={replyContent}
+                onChange={(e) => {
+                  setReplyContent(e.target.value);
+                  autoResize(e.target);
+                }}
+                onKeyDown={handleKeyPress}
+                onInput={(e) => autoResize(e.target)}
+                rows={1}
+                maxLength={2000}
+                disabled={isReplying}
               />
 
               {/* Emoji picker button */}
               <div className="relative">
                 <button
-                  className="text-neutral-500 hover:text-white transition-colors p-1"
+                  className="text-neutral-500 hover:text-white transition-colors p-3"
                   onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
                   disabled={isReplying}
                   type="button"

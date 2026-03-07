@@ -23,6 +23,8 @@ const MessageBar = () => {
   } = useAppStore();
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const inputRef = useRef();
   const emojiRef = useRef();
   const fileRef = useRef();
 
@@ -68,13 +70,20 @@ const MessageBar = () => {
 
   const handleSendMessage = () => {
     if (!message.trim()) {
+      toast.info("Message cannot be empty.");
       return;
     }
+
+    if (message.trim().length >= 2000) {
+      toast.info("Message cannot exceed 2000 characters.");
+      return;
+    }
+
     if (selectedChatType === "Contact") {
       socket.emit("sendMessage", {
         sender: userInfo.id,
         receiver: selectedChatData._id,
-        content: message,
+        content: message.trim(),
         messageType: "text",
         isGroupMessage: false,
       });
@@ -117,7 +126,7 @@ const MessageBar = () => {
       };
       socket.emit("sendGroupMessage", {
         sender: userInfo.id,
-        content: message,
+        content: message.trim(),
         messageType: "text",
         groupId: selectedChatData._id,
         isGroupMessage: true,
@@ -130,6 +139,9 @@ const MessageBar = () => {
     }
 
     setMessage("");
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
   };
 
   const handleAttachmentClick = () => {
@@ -249,6 +261,11 @@ const MessageBar = () => {
     }
   };
 
+  const autoResize = (el) => {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+
   useEffect(() => {
     document.addEventListener("mousedown", handleCloseEmojiPicker);
 
@@ -258,20 +275,26 @@ const MessageBar = () => {
   }, [emojiRef]);
 
   return (
-    <div className="min-h-[8vh] bg-[#1c1d25] flex items-center justify-center p-3 sm:p-4 gap-3 sm:gap-4">
-      <div className="flex-1 flex bg-[#2a2b33] rounded-md items-center sm:gap-3 pr-3 min-w-0">
-        <input
-          type="text"
-          className="flex-1 p-4 bg-transparent rounded-md focus:border-none focus:outline-none text-sm sm:text-base min-w-0"
+    <div className="min-h-[8vh] bg-[#1c1d25] flex items-end justify-center p-3 sm:p-4 gap-3 sm:gap-4">
+      <div className="flex-1 flex bg-[#2a2b33] rounded-md items-end sm:gap-3 pr-3 min-w-0">
+        <textarea
+          ref={inputRef}
+          className="max-h-[125px] flex-1 p-4 bg-transparent rounded-md focus:border-none focus:outline-none text-sm sm:text-base min-w-0 resize-none text-input-scrollbar"
           placeholder="Enter Message"
           value={message}
-          onChange={handleSetMessage}
-          onKeyPress={handleKeyPress}
+          onChange={(e) => {
+            handleSetMessage(e);
+            autoResize(e.target);
+          }}
+          onKeyDown={handleKeyPress}
+          onInput={(e) => autoResize(e.target)}
+          rows={1}
+          maxLength={2000}
           disabled={uploading}
         />
 
         {/* Action buttons container */}
-        <div className="flex items-center gap-2 sm:gap-5 lg:gap-7 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-5 lg:gap-7 flex-shrink-0 pb-3 sm:p-4">
           <button
             className={`text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer hover:text-white p-1 sm:p-0 ${
               uploading ? "opacity-50 cursor-not-allowed" : ""

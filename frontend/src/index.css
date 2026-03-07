@@ -144,6 +144,24 @@
   border-radius: 4px;
 }
 
+.text-input-scrollbar {
+  /* scrollbar-width: thin; */
+  scrollbar-color: #1c1d25 #2a2b33;
+}
+
+.text-input-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.text-input-scrollbar::-webkit-scrollbar-track {
+  background: #1c1d25;
+}
+
+.text-input-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #2a2b33;
+  border-radius: 4px;
+}
+
 @keyframes fade-in-out {
   0%,
   100% {
