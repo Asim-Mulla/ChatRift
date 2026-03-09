@@ -28,10 +28,10 @@ const ProfileInfo = () => {
   };
 
   return (
-    <div className=" flex items-center justify-between py-3 px-6  w-full bg-[#2a2b33] border-t border-[#2f303b]">
+    <div className=" flex items-center justify-between py-3 px-6 w-full bg-[#2a2b33] border-t border-[#2f303b]">
       <div className="flex gap-3 items-center justify-start flex-1 min-w-0">
         <div className="w-12 h-12 relative">
-          <Avatar className="h-12 w-12  rounded-full overflow-hidden">
+          <Avatar className="h-12 w-12 rounded-full overflow-hidden">
             {userInfo?.image?.url ? (
               <AvatarImage
                 src={userInfo?.image?.url || "/placeholder.svg"}
@@ -41,8 +41,8 @@ const ProfileInfo = () => {
               />
             ) : (
               <div
-                className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
-                  userInfo?.color
+                className={`uppercase h-12 w-12 text-lg border flex justify-center items-center rounded-full ${getColor(
+                  userInfo?.color,
                 )}`}
               >
                 {userInfo?.firstName && userInfo?.lastName
@@ -72,10 +72,6 @@ const ProfileInfo = () => {
           className="text-purple-400 hover:text-purple-600 text-lg cursor-pointer"
           onClick={() => navigate("/profile")}
         />
-        {/* <MdOutlineLogout
-          className="text-red-400 text-lg hover:text-red-400 cursor-pointer"
-          onClick={handleLogout}
-        /> */}
         <LogoutConfirmation onLogout={handleLogout} />
       </div>
     </div>

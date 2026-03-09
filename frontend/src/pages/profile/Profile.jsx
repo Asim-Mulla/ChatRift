@@ -153,6 +153,9 @@ const Profile = () => {
 
   return (
     <div className="bg-[#1b1c24] h-[calc(var(--vh)_*100)] flex items-center justify-center flex-col gap-10">
+      <h2 className="sm:w-[300px] w-[90vw] text-center text-white text-3xl md:text-4xl bg-[#8417ff]/50 py-3 rounded-full">
+        Profile
+      </h2>
       <div className="flex flex-col gap-10 w-[80vw] md:w-max">
         <div>
           <IoArrowBack
@@ -178,7 +181,7 @@ const Profile = () => {
                 ) : (
                   <div
                     className={`uppercase h-25 w-25 md:w-35 md:h-35 text-5xl border flex justify-center items-center rounded-full ${getColor(
-                      selectedColor
+                      selectedColor,
                     )}`}
                   >
                     {firstName && lastName
@@ -285,7 +288,6 @@ const Profile = () => {
           <Button
             className="p-6 w-full bg-purple-700 hover:bg-purple-900 disabled:bg-purple-500 transition-all duration-300 cursor-pointer"
             onClick={handleSaveChange}
-            // disabled={loading}
           >
             Save Changes
           </Button>

@@ -212,7 +212,7 @@ const Logo = () => {
         className="h-10 w-10 sm:h-14 sm:w-14"
         alt="ChatRift Logo"
       />
-      <span className="text-2xl font-semibold ">ChatRift</span>
+      <h1 className="text-2xl font-semibold ">ChatRift</h1>
     </div>
   );
 };

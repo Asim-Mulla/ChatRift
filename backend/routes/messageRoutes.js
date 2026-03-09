@@ -63,9 +63,6 @@ messageRoutes.get("/get-messages/:otherUserId", verifyToken, getMessages);
 messageRoutes.post(
   "/upload-file",
   verifyToken,
-  (req, res, next) => {
-    next();
-  },
   upload.single("file"),
   uploadFile,
 );
@@ -84,6 +81,10 @@ messageRoutes.use((error, req, res, next) => {
         .json({ error: "File too large. Maximum size is 5MB." });
     }
     return res.status(400).json({ error: `Upload error: ${error.message}` });
+  }
+
+  if (error.message === "Empty file") {
+    return res.status(400).json({ error: "Cannot upload an empty file." });
   }
 
   return res.status(400).json({ error: error.message || "Upload failed" });

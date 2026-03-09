@@ -448,7 +448,8 @@ const MessageContainer = () => {
                   isOwnMessage
                     ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                     : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-                } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+                } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words text-sm sm:text-base`}
+                style={{ overflowWrap: "anywhere" }}
               >
                 <div className="flex flex-col">
                   {message?.reply?.isReply && (
@@ -474,7 +475,10 @@ const MessageContainer = () => {
                               ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
                               : "this message was deleted"}
                         </span>
-                        <span className="text-sm whitespace-pre-wrap break-words">
+                        <span
+                          className="text-sm whitespace-pre-wrap break-words"
+                          style={{ overflowWrap: "anywhere" }}
+                        >
                           {message?.reply?.to?.messageType === "text" ? (
                             message?.reply?.to?.content
                           ) : checkIfImage(message?.reply?.to?.file?.url) ? (
@@ -498,7 +502,10 @@ const MessageContainer = () => {
                       ) : null}
                     </div>
                   )}
-                  <span className="text-start whitespace-pre-wrap break-words">
+                  <span
+                    className="text-start whitespace-pre-wrap break-words"
+                    style={{ overflowWrap: "anywhere" }}
+                  >
                     {message?.content}
                   </span>
                 </div>
@@ -535,7 +542,7 @@ const MessageContainer = () => {
                 isOwnMessage
                   ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-              } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] `}
+              } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%]`}
             >
               {checkIfImage(message?.file?.url) ? (
                 <>
@@ -577,7 +584,10 @@ const MessageContainer = () => {
                           )}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-xs sm:text-sm break-all">
+                          <div
+                            className="font-medium text-xs sm:text-sm break-words"
+                            style={{ overflowWrap: "anywhere" }}
+                          >
                             {message?.file?.fileName}
                           </div>
                           {message?.file?.size && (
@@ -645,7 +655,7 @@ const MessageContainer = () => {
                 isOwnMessage
                   ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+              } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
             >
               <div
                 className={`flex items-center justify-between gap-3 p-2.5 pl-3 border-t pr-20 rounded-sm ${
@@ -781,7 +791,7 @@ const MessageContainer = () => {
               isOwnMessage
                 ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                 : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-            } relative border inline-block p-2 sm:p-3 italic rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words text-sm sm:text-base`}
+            } relative border inline-block p-2 sm:p-3 italic rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words text-sm sm:text-base`}
           >
             <MdOutlineDoNotDisturb className="inline-block text-xl align-text-bottom me-1" />
             <span>
@@ -804,7 +814,8 @@ const MessageContainer = () => {
                   isOwnMessage
                     ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                     : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-                } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-all overflow-wrap-anywhere hyphens-auto text-sm sm:text-base`}
+                } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words text-sm sm:text-base`}
+                style={{ overflowWrap: "anywhere" }}
               >
                 <div className="flex flex-col">
                   {message?.reply?.isReply && (
@@ -817,7 +828,7 @@ const MessageContainer = () => {
                       }`}
                     >
                       <div
-                        className={`flex flex-col  ${
+                        className={`flex flex-col ${
                           checkIfImage(message?.reply?.to?.file?.url)
                             ? "justify-center"
                             : "justify-start"
@@ -830,7 +841,10 @@ const MessageContainer = () => {
                               ? `${message?.reply?.to?.sender?.firstName} ${message?.reply?.to?.sender?.lastName}`
                               : "this message was deleted"}
                         </span>
-                        <span className="text-sm whitespace-pre-wrap break-words">
+                        <span
+                          className="text-sm whitespace-pre-wrap break-words"
+                          style={{ overflowWrap: "anywhere" }}
+                        >
                           {message?.reply?.to?.messageType === "text" ? (
                             message?.reply?.to?.content
                           ) : checkIfImage(message?.reply?.to?.file?.url) ? (
@@ -854,7 +868,10 @@ const MessageContainer = () => {
                       ) : null}
                     </div>
                   )}
-                  <span className="text-start whitespace-pre-wrap break-words">
+                  <span
+                    className="text-start whitespace-pre-wrap break-words"
+                    style={{ overflowWrap: "anywhere" }}
+                  >
                     {message?.content}
                   </span>
                 </div>
@@ -883,7 +900,7 @@ const MessageContainer = () => {
                 isOwnMessage
                   ? "bg-[#8417ff]/25 text-white/80 border-[#8417ff]/50"
                   : "bg-[#2e2b33]/5 text-white/80 border-[#ffffff]/20"
-              } relative border inline-block p-2 sm:p-3 rounded  max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%] break-words`}
+              } relative border inline-block p-2 sm:p-3 rounded max-w-[85%] sm:max-w-[75%] md:max-w-[60%] lg:max-w-[50%]`}
             >
               {checkIfImage(message?.file?.url) ? (
                 <>
@@ -897,7 +914,7 @@ const MessageContainer = () => {
                     <img
                       src={message?.file?.url || "/placeholder.svg"}
                       alt={message?.file?.fileName}
-                      className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded break-words"
+                      className="max-w-full h-auto max-h-48 sm:max-h-64 md:max-h-80 rounded"
                       onError={(e) => {
                         e.target.style.display = "none";
                         e.target.nextSibling.style.display = "block";
@@ -925,7 +942,10 @@ const MessageContainer = () => {
                           )}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-xs sm:text-sm break-all">
+                          <div
+                            className="font-medium text-xs sm:text-sm break-words"
+                            style={{ overflowWrap: "anywhere" }}
+                          >
                             {message?.file?.fileName}
                           </div>
                           {message?.file?.size && (

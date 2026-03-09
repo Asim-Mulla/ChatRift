@@ -118,7 +118,7 @@ const ChatHeader = () => {
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="w-10 h-10 relative flex-shrink-0">
             {selectedChatType === "Contact" ? (
-              <Avatar className="h-10 w-10  rounded-full overflow-hidden">
+              <Avatar className="h-10 w-10 rounded-full overflow-hidden">
                 {selectedChatData?.image?.url ? (
                   <AvatarImage
                     src={selectedChatData?.image?.url || "/placeholder.svg"}
@@ -128,7 +128,7 @@ const ChatHeader = () => {
                   />
                 ) : (
                   <div
-                    className={`uppercase h-10 w-10  text-lg border flex justify-center items-center rounded-full ${getColor(
+                    className={`uppercase h-10 w-10 text-lg border flex justify-center items-center rounded-full ${getColor(
                       selectedChatData?.color,
                     )}`}
                   >
@@ -146,7 +146,7 @@ const ChatHeader = () => {
                 )}
               </Avatar>
             ) : (
-              <div className="bg-[#ffffff22] h-10 w-10 flex  items-center justify-center rounded-full">
+              <div className="bg-[#ffffff22] h-10 w-10 flex items-center justify-center rounded-full">
                 <span>#</span>
               </div>
             )}

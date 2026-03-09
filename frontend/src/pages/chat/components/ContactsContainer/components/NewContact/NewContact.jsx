@@ -77,7 +77,7 @@ const NewContact = () => {
                         contact?.email
                           ?.split("@")[0]
                           .toLowerCase()
-                          .includes(searchTerm.toLowerCase())
+                          .includes(searchTerm.toLowerCase()),
                     )
                     .map((contact) => (
                       <div
@@ -87,7 +87,7 @@ const NewContact = () => {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 relative">
-                            <Avatar className="h-12 w-12  rounded-full overflow-hidden">
+                            <Avatar className="h-12 w-12 rounded-full overflow-hidden">
                               {contact?.image?.url ? (
                                 <AvatarImage
                                   src={contact?.image?.url}
@@ -99,8 +99,8 @@ const NewContact = () => {
                                 />
                               ) : (
                                 <div
-                                  className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
-                                    contact?.color
+                                  className={`uppercase h-12 w-12 text-lg border flex justify-center items-center rounded-full ${getColor(
+                                    contact?.color,
                                   )}`}
                                 >
                                   {contact.firstName && contact.lastName
@@ -154,7 +154,7 @@ const NewContact = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 relative">
-                          <Avatar className="h-12 w-12  rounded-full overflow-hidden">
+                          <Avatar className="h-12 w-12 rounded-full overflow-hidden">
                             {contact?.image?.url ? (
                               <AvatarImage
                                 src={contact?.image?.url}
@@ -166,8 +166,8 @@ const NewContact = () => {
                               />
                             ) : (
                               <div
-                                className={`uppercase h-12 w-12  text-lg border flex justify-center items-center rounded-full ${getColor(
-                                  contact?.color
+                                className={`uppercase h-12 w-12 text-lg border flex justify-center items-center rounded-full ${getColor(
+                                  contact?.color,
                                 )}`}
                               >
                                 {contact.firstName && contact.lastName
@@ -207,16 +207,6 @@ const NewContact = () => {
               </ScrollArea>
             </div>
           )}
-
-          {/* {searchTerm?.length <= 0 && (
-            <div className="flex-1 flex flex-col justify-center items-center  duration-1000 transition-all ">
-              <div className="text-opacity-80 text-white flex flex-col gap-5 items-center mt-5 lg:text-xl text-md transition-all duration-300 text-center">
-                <h3 className=" poppins-medium">
-                  Search for a<span className="text-purple-500"> Contact</span>
-                </h3>
-              </div>
-            </div>
-          )} */}
         </DialogContent>
       </Dialog>
     </div>

@@ -54,7 +54,7 @@ const ExitGroupModel = () => {
   return (
     <div>
       <TbLogout
-        className="text-neutral-400 text-2xl  focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer"
+        className="text-neutral-400 text-2xl focus:border-none focus:outline-none focus:text-white duration-300 transition-all cursor-pointer"
         onClick={() => {
           setOpenExitGroupModal(true);
         }}

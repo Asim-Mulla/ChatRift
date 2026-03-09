@@ -28,13 +28,13 @@ const ChatConatiner = () => {
       userInfo.id !== selectedChatData.admin
     ) {
       setRemoved(
-        !selectedChatData.members.find((member) => member._id === userInfo.id)
+        !selectedChatData.members.find((member) => member._id === userInfo.id),
       );
     }
   }, [groups, selectedChatData]);
 
   return (
-    <div className="fixed top-0 h-[calc(var(--vh)_*100)] w-[100vw] bg-[#1c1d25] flex flex-col md:static md:flex-1">
+    <div className="fixed top-0 h-[calc(var(--vh)_*_100)] w-[100vw] bg-[#1c1d25] flex flex-col md:static md:flex-1">
       <ChatHeader />
       <MessageContainer />
       {!removed ? <MessageBar /> : null}

@@ -15,8 +15,8 @@ const Loading = () => {
   }, []);
 
   return (
-    <div className="h-[calc(var(--vh)_*100)] bg-[#1c1d25] flex flex-col  items-center justify-center p-8">
-      <div className="relative  rounded w-64 h-40 flex items-center justify-center">
+    <div className="h-[calc(var(--vh)_*100)] bg-[#1c1d25] flex flex-col items-center justify-center p-8">
+      <div className="relative rounded w-64 h-40 flex items-center justify-center">
         <div className="">
           <img
             src="/chatrift-logo.png"

@@ -40,7 +40,7 @@ const Chat = () => {
   }, []);
 
   return (
-    <div className="flex h-[calc(var(--vh)_*100)] text-white overflow-hidden">
+    <div className="flex h-[calc(var(--vh)_*_100)] text-white overflow-hidden">
       <ContactsContainer />
       {selectedChatType === null ? <EmptyChatContainer /> : <ChatConatiner />}
     </div>

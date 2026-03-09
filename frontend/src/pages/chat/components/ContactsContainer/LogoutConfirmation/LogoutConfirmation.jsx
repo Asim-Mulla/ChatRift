@@ -6,25 +6,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
-import { FaPowerOff } from "react-icons/fa";
-import { toast } from "sonner";
 import { MdOutlineLogout } from "react-icons/md";
 
 const LogoutConfirmation = ({ onLogout }) => {
   const [openLogoutModal, setOpenLogoutModal] = useState(false);
-
-  //   const handleLogout = async () => {
-  //     try {
-  //       // You can call your actual logout API or clear local storage here
-  //       toast.success("Logged out successfully!");
-  //       setOpenLogoutModal(false);
-
-  //       if (onLogout) onLogout(); // optional callback
-  //     } catch (error) {
-  //       console.error(error);
-  //       toast.error("Failed to logout. Please try again.");
-  //     }
-  //   };
 
   return (
     <div>

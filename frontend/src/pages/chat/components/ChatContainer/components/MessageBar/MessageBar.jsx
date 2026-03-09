@@ -169,8 +169,9 @@ const MessageBar = () => {
 
     // Validate file size (<5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be under 5MB.");
-      return;
+      return toast.error("File size must be under 5MB.");
+    } else if (file.size < 1) {
+      return toast.error("Cannot upload an empty file.");
     }
 
     setUploading(true);
@@ -351,13 +352,13 @@ const MessageBar = () => {
       </div>
 
       <button
-        className={`bg-[#8417ff] rounded-md flex items-center justify-center p-4 focus:border-none hover:bg-[#741bda] focus:bg-[#741bda] focus:outline-none focus:text-white duration-300 transition-all flex-shrink-0 ${
+        className={`bg-[#8417ff] rounded-md flex items-center justify-center p-4 sm:p-4.5 focus:border-none hover:bg-[#741bda] focus:bg-[#741bda] focus:outline-none focus:text-white duration-300 transition-all flex-shrink-0 ${
           uploading || !message.trim() ? "opacity-50 cursor-not-allowed" : ""
         }`}
         onClick={handleSendMessage}
         disabled={uploading || !message.trim()}
       >
-        <IoSend className="text-base sm:text-lg md:text-xl" />
+        <IoSend className="text-base text-xl" />
       </button>
     </div>
   );
